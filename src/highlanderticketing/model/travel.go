@@ -22,3 +22,6 @@ const (
 	BUS   TravelType = "BUS"
 	PLANE TravelType = "PLANE"
 )
+
+// Funktion ins Modell (siehe
+//Myaktion), welche den available_ Ticket_Amount berechnet

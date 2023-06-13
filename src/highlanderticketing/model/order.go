@@ -9,5 +9,5 @@ type OrderType string
 
 const (
 	MATCHTICKET OrderType = "MATCHTICKET"
-	BUSTICKET   OrderType = "BUSTICKET"
+	BUSTICKET   OrderType = "TRAVELTICKET"
 )
