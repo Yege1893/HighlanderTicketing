@@ -13,5 +13,5 @@ type Match struct {
 	Orders                []Order
 }
 
-// Funktion ins Modell (siehe
+// Funktion ins Modell (sieher
 //Myaktion), welche den available_ Ticket_Amount berechnet
