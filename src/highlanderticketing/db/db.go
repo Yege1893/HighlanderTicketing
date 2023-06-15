@@ -8,43 +8,34 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-/*
-	Used to create a singleton object of MongoDB client.
+var (
+	clientInstance      *mongo.Client
+	clientInstanceError error
+	clientOnce          sync.Once
+)
 
-Initialized and exposed through  GetMongoClient().
-*/
-var clientInstance *mongo.Client
-
-// Used during creation of singleton client object in GetMongoClient().
-var clientInstanceError error
-
-// Used to execute client creation procedure only once.
-var mongoOnce sync.Once
-
-// I have used below constants just to hold required database config's.
 const (
 	CONNECTIONSTRING = "mongodb://localhost:27017"
 	DB               = "db_issue_manager"
-	ISSUES           = "col_issues"
+	MATCHES          = "col_matches"
+	POOL_SIZE        = 10 // Anzahl der Verbindungen im Pool
 )
 
-// GetMongoClient - Return mongodb connection to work with
 func GetMongoClient() (*mongo.Client, error) {
-	//Perform connection creation operation only once.
-	mongoOnce.Do(func() {
-		// Set client options
+	clientOnce.Do(func() {
+		// Erstelle den Verbindungspool
 		clientOptions := options.Client().ApplyURI(CONNECTIONSTRING)
-		// Connect to MongoDB
+		clientOptions.SetMaxPoolSize(POOL_SIZE)
 		client, err := mongo.Connect(context.TODO(), clientOptions)
 		if err != nil {
 			clientInstanceError = err
 		}
-		// Check the connection
 		err = client.Ping(context.TODO(), nil)
 		if err != nil {
 			clientInstanceError = err
 		}
 		clientInstance = client
 	})
+
 	return clientInstance, clientInstanceError
 }

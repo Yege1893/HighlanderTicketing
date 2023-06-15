@@ -14,7 +14,7 @@ func CreateMatch(match *model.Match) error {
 	if err != nil {
 		return err
 	}
-	collection := client.Database(db.DB).Collection(db.ISSUES)
+	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	_, err = collection.InsertOne(context.TODO(), match)
 	if err != nil {
@@ -32,7 +32,7 @@ func GetAllMatches() ([]model.Match, error) {
 		return matches, err
 	}
 
-	collection := client.Database(db.DB).Collection(db.ISSUES)
+	collection := client.Database(db.DB).Collection(db.MATCHES)
 	cur, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return matches, err
