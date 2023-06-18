@@ -12,6 +12,7 @@ import (
 )
 
 func CreateMatch(match *model.Match) error {
+	match.ID = primitive.NewObjectID()
 	client, err := db.GetMongoClient()
 	if err != nil {
 		return err
@@ -25,7 +26,7 @@ func CreateMatch(match *model.Match) error {
 	return nil
 }
 
-// noch testen
+// noch testen nur intern für anbindung an die api
 func CreateMatches(list *[]model.Match) error {
 	insertableList := make([]interface{}, len(*list))
 	for i, v := range *list {
@@ -61,7 +62,7 @@ func UpdateMatch(matchID primitive.ObjectID, match *model.Match) (*model.Match, 
 		primitive.E{Key: "available_ticket_amount", Value: match.AvailableTicketAmount},
 		primitive.E{Key: "away_match", Value: match.AwayMatch},
 		primitive.E{Key: "location", Value: match.Location},
-		//primitive.E{Key: "date", Value: existingMatch.Date},
+		//primitive.E{Key: "date", Value: match.Date},
 	}}}
 
 	client, err := db.GetMongoClient()

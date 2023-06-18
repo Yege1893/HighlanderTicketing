@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -9,50 +8,22 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
-	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
-	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func main() {
-	router := mux.NewRouter()
+	//init db
 	_, err := db.GetMongoClient()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Testen
-	objectID := primitive.NewObjectID()
-	var initialMatch = model.Match{ID: objectID, InitialTicketAmount: 1, AvailableTicketAmount: 1, AwayMatch: true, Location: "Stuttgart"}
-	err1 := service.CreateMatch(&initialMatch)
-	if err1 != nil {
-		fmt.Println(err)
-	}
-	matches, err := service.GetAllMatches()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(matches)
-
-	var updateModel = model.Match{ID: objectID, InitialTicketAmount: 1, AvailableTicketAmount: 1, AwayMatch: true, Location: "Schalke"}
-	updatedmatch, err := service.UpdateMatch(objectID, &updateModel)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(updatedmatch)
-	match, err := service.GetMatchByID(objectID)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(match)
-	deleted := service.DeleteAllMatches()
-	if err != nil {
-		fmt.Println(deleted)
-	}
-
-	// ende tests
-
+	log.Println("Starting Highlander Ticketing server")
+	router := mux.NewRouter()
 	router.HandleFunc("/health", handler.Health).Methods("GET")
+	router.HandleFunc("/match", handler.CreateMatch).Methods("POST")
+	router.HandleFunc("/matches", handler.GetAllMatches).Methods("GET")
+	router.HandleFunc("/match/{id}", handler.GetMatchByID).Methods("GET")
+	router.HandleFunc("/match/{id}", handler.UpdateMatch).Methods("PUT")
+	router.HandleFunc("/match/{id}", handler.DeleteMatch).Methods("DELETE")
 	if err := http.ListenAndServe(":8000", router); err != nil {
 		log.Fatal(err)
 	}
