@@ -11,6 +11,7 @@ import (
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func main() {
@@ -19,7 +20,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var model1 = model.Match{1, 12, 12, true, "aaa"}
+
+	// Testen
+	objectID := primitive.NewObjectID()
+	var model1 = model.Match{ID: objectID, InitialTicketAmount: 1, AvailableTicketAmount: 1, AwayMatch: true, Location: "aaa"}
 	err1 := service.CreateMatch(&model1)
 	if err1 != nil {
 		fmt.Println(err)
@@ -29,6 +33,16 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Println(matches)
+	match, err := service.GetMatchByID(objectID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(match)
+	deleted := service.DeleteAllMatches()
+	if err != nil {
+		fmt.Println(deleted)
+	}
+
 	router.HandleFunc("/health", handler.Health).Methods("GET")
 	if err := http.ListenAndServe(":8000", router); err != nil {
 		log.Fatal(err)
