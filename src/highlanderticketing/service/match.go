@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
@@ -44,6 +45,46 @@ func CreateMatches(list *[]model.Match) error {
 	}
 
 	return nil
+}
+
+func UpdateMatch(matchID primitive.ObjectID, match *model.Match) (*model.Match, error) {
+	result := model.Match{}
+	existingMatch, err := GetMatchByID(matchID)
+	if existingMatch == nil || err != nil {
+		return existingMatch, err
+	}
+
+	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
+
+	updater := bson.D{primitive.E{Key: "$set", Value: bson.D{
+		primitive.E{Key: "initial_ticket_amount", Value: match.InitialTicketAmount},
+		primitive.E{Key: "available_ticket_amount", Value: match.AvailableTicketAmount},
+		primitive.E{Key: "away_match", Value: match.AwayMatch},
+		primitive.E{Key: "location", Value: match.Location},
+		//primitive.E{Key: "date", Value: existingMatch.Date},
+	}}}
+
+	client, err := db.GetMongoClient()
+	if err != nil {
+		return nil, err
+	}
+	collection := client.Database(db.DB).Collection(db.MATCHES)
+
+	updateResult, err := collection.UpdateOne(context.TODO(), filter, updater)
+	if err != nil {
+		return nil, err
+	}
+
+	if updateResult.ModifiedCount == 0 {
+		return nil, fmt.Errorf("no document was updated")
+	}
+
+	err = collection.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 func GetAllMatches() ([]model.Match, error) {
@@ -92,6 +133,20 @@ func GetMatchByID(matchID primitive.ObjectID) (*model.Match, error) {
 		return &result, err
 	}
 	return &result, nil
+}
+
+func DeleteMatch(matchID primitive.ObjectID) error {
+	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
+	client, err := db.GetMongoClient()
+	if err != nil {
+		return err
+	}
+	collection := client.Database(db.DB).Collection(db.MATCHES)
+	_, err = collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func DeleteAllMatches() error {

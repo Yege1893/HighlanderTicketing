@@ -23,8 +23,8 @@ func main() {
 
 	// Testen
 	objectID := primitive.NewObjectID()
-	var model1 = model.Match{ID: objectID, InitialTicketAmount: 1, AvailableTicketAmount: 1, AwayMatch: true, Location: "aaa"}
-	err1 := service.CreateMatch(&model1)
+	var initialMatch = model.Match{ID: objectID, InitialTicketAmount: 1, AvailableTicketAmount: 1, AwayMatch: true, Location: "Stuttgart"}
+	err1 := service.CreateMatch(&initialMatch)
 	if err1 != nil {
 		fmt.Println(err)
 	}
@@ -33,6 +33,13 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Println(matches)
+
+	var updateModel = model.Match{ID: objectID, InitialTicketAmount: 1, AvailableTicketAmount: 1, AwayMatch: true, Location: "Schalke"}
+	updatedmatch, err := service.UpdateMatch(objectID, &updateModel)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(updatedmatch)
 	match, err := service.GetMatchByID(objectID)
 	if err != nil {
 		fmt.Println(err)
@@ -42,6 +49,8 @@ func main() {
 	if err != nil {
 		fmt.Println(deleted)
 	}
+
+	// ende tests
 
 	router.HandleFunc("/health", handler.Health).Methods("GET")
 	if err := http.ListenAndServe(":8000", router); err != nil {
