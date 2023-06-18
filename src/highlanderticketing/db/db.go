@@ -18,6 +18,7 @@ const (
 	CONNECTIONSTRING = "mongodb://localhost:27017"
 	DB               = "db_issue_manager"
 	MATCHES          = "col_matches"
+	TRAVEL           = "col_travel"
 	POOL_SIZE        = 10 // Anzahl der Verbindungen im Pool
 )
 

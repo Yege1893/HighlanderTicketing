@@ -27,7 +27,7 @@ func CreateMatch(match *model.Match) error {
 }
 
 // noch testen nur intern für anbindung an die api
-func CreateMatches(list *[]model.Match) error {
+/*func CreateMatches(list *[]model.Match) error {
 	insertableList := make([]interface{}, len(*list))
 	for i, v := range *list {
 		insertableList[i] = v
@@ -46,7 +46,7 @@ func CreateMatches(list *[]model.Match) error {
 	}
 
 	return nil
-}
+}*/
 
 func UpdateMatch(matchID primitive.ObjectID, match *model.Match) (*model.Match, error) {
 	result := model.Match{}
