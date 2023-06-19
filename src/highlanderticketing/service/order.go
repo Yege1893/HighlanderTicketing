@@ -10,7 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// noch testen
 func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
 	order.ID = primitive.NewObjectID()
@@ -39,6 +38,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 
 func AddTravelOrder(matchID primitive.ObjectID, order *model.Order) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
+	order.ID = primitive.NewObjectID()
 
 	updater := bson.M{"$push": bson.M{"travel.orders": order}}
 
@@ -59,10 +59,6 @@ func AddTravelOrder(matchID primitive.ObjectID, order *model.Order) error {
 
 	return nil
 }
-
-func UpdateOrder() {
-
-}
-func DeleteOrder() {
+func CancelOrder() {
 
 }

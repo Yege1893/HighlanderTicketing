@@ -15,7 +15,7 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	order, err := getMatchOrder(r)
+	order, err := getOrder(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -29,8 +29,28 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, order)
 
 }
+func AddTravelOrder(w http.ResponseWriter, r *http.Request) {
+	id, err := getID(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	order, err := getOrder(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = service.AddTravelOrder(id, order)
+	if err != nil {
+		log.Errorf("Failure adding donation to campaign with ID %v: %v", id, err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	sendJson(w, order)
 
-func getMatchOrder(r *http.Request) (*model.Order, error) {
+}
+
+func getOrder(r *http.Request) (*model.Order, error) {
 	var order model.Order
 	err := json.NewDecoder(r.Body).Decode(&order)
 	if err != nil {

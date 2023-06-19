@@ -25,6 +25,7 @@ func main() {
 	router.HandleFunc("/match/{id}", handler.UpdateMatch).Methods("PUT")
 	router.HandleFunc("/match/{id}", handler.DeleteMatch).Methods("DELETE")
 	router.HandleFunc("/match/{id}/matchorder", handler.AddMatchOrder).Methods("POST")
+	router.HandleFunc("/match/{id}/travelorder", handler.AddTravelOrder).Methods("POST")
 	if err := http.ListenAndServe(":8000", router); err != nil {
 		log.Fatal(err)
 	}
