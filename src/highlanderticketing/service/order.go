@@ -11,13 +11,9 @@ import (
 )
 
 // noch testen
-func AddMatchOrder(matchID primitive.ObjectID, order model.Order) error {
-	existingMatch, err := GetMatchByID(matchID)
-	if existingMatch == nil || err != nil {
-		return err
-	}
-
+func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
+	order.ID = primitive.NewObjectID()
 
 	updater := bson.D{primitive.E{Key: "$push", Value: bson.D{
 		primitive.E{Key: "orders", Value: order},
@@ -41,23 +37,16 @@ func AddMatchOrder(matchID primitive.ObjectID, order model.Order) error {
 	return nil
 }
 
-/*func AddTravelOrder(travelID primitive.ObjectID, order model.Order) error {
-	existingTravel, err := GetTravelByID(travelID)
-	if existingTravel == nil || err != nil {
-		return err
-	}
+func AddTravelOrder(matchID primitive.ObjectID, order *model.Order) error {
+	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
 
-	filter := bson.D{primitive.E{Key: "_id", Value: travelID}}
-
-	updater := bson.D{primitive.E{Key: "$push", Value: bson.D{
-		primitive.E{Key: "orders", Value: order},
-	}}}
+	updater := bson.M{"$push": bson.M{"travel.orders": order}}
 
 	client, err := db.GetMongoClient()
 	if err != nil {
 		return err
 	}
-	collection := client.Database(db.DB).Collection(db.TRAVEL)
+	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	updateResult, err := collection.UpdateOne(context.TODO(), filter, updater)
 	if err != nil {
@@ -69,7 +58,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order model.Order) error {
 	}
 
 	return nil
-}*/
+}
 
 func UpdateOrder() {
 

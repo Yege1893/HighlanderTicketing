@@ -1,11 +1,12 @@
 package model
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"google.golang.org/genproto/googleapis/type/date"
 )
 
 type Travel struct {
-	ID                  uint
+	ID                  primitive.ObjectID `bson:"_id, omitempty"`
 	TravelType          TravelType
 	InitialSeatAmount   int32
 	AvailableSeatAmount int32

@@ -6,7 +6,7 @@ type Order struct {
 	ID        primitive.ObjectID `bson:"_id, omitempty"`
 	OrderType OrderType          `bson:"order_type"`
 	Amount    int32              `bson:"amount"`
-	User      User               `bson:"user"`
+	User      User               `bson:"user, omitempty"`
 }
 type OrderType string
 

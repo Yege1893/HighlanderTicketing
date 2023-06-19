@@ -11,26 +11,9 @@ type Match struct {
 	AvailableTicketAmount int32              `bson:"available_ticket_amount"`
 	AwayMatch             bool               `bson:"away_match"`
 	Location              string             `bson:"location"`
-	Date                  date.Date          `bson:"date"`
-	Travel                Travel             `bson:"travel, omitempty"`
+	Date                  date.Date          `bson:"date, omitempty"`
+	Travel                Travel             `bson:"travel"`
 	Orders                []Order            `bson:"orders"`
 }
 
-/*func calculateAmountDonated(matchID primitive.ObjectID) (int32, error) {
-	collection := client.Database("your_db").Collection("orders")
-	pipeline := []bson.M{
-		{"$match": bson.M{"match_id": matchID}},
-		{"$group": bson.M{"_id": nil, "totalAmount": bson.M{"$sum": "$amount"}}},
-	}
-
-	var result struct {
-		TotalAmount int32 `bson:"totalAmount"`
-	}
-
-	err := collection.Aggregate(context.TODO(), pipeline).Decode(&result)
-	if err != nil {
-		return 0, err
-	}
-
-	return result.TotalAmount, nil
-}*/ // muss nach jedem update , erstellen gemacht werden , funktion anpassen
+// muss nach jedem update , erstellen gemacht werden , funktion anpassen
