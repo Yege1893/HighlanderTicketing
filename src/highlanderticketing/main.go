@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	//service.DeleteAllMatches()
+	//service.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")
 	//init db
 	_, err := db.GetMongoClient()
 	if err != nil {
