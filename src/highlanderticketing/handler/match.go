@@ -120,7 +120,7 @@ func DeleteMatch(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, result{Success: "OK"})
 }*/
 func getMatch(r *http.Request) (*model.Match, error) {
-	var match model.Match
+	var match *model.Match
 	err := json.NewDecoder(r.Body).Decode(&match)
 	if err != nil {
 		log.Errorf("Can't serialize request body to campaign struct: %v", err)
@@ -129,7 +129,7 @@ func getMatch(r *http.Request) (*model.Match, error) {
 		log.Infof("request body seralized to campaign struct")
 		log.Tracef("body seralized in struct campaign: %v", match)
 	}
-	return &match, nil
+	return match, nil
 }
 
 /*func getMatches(r *http.Request) (*[]model.Match, error){
