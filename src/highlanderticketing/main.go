@@ -12,7 +12,7 @@ import (
 
 func main() {
 	//service.DeleteAllMatches()
-	//service.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")
+	//api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")
 	//init db
 	_, err := db.GetMongoClient()
 	if err != nil {
@@ -20,6 +20,8 @@ func main() {
 	}
 	log.Println("Starting Highlander Ticketing server")
 	router := mux.NewRouter()
+	router.HandleFunc("/login", handler.HandleLogin).Methods("GET")
+	router.HandleFunc("/callback", handler.HandleCallback).Methods("GET")
 	router.HandleFunc("/health", handler.Health).Methods("GET")
 	router.HandleFunc("/match", handler.CreateMatch).Methods("POST")
 	router.HandleFunc("/matches", handler.GetAllMatches).Methods("GET")
