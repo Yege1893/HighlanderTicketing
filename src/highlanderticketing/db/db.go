@@ -17,7 +17,9 @@ var (
 const (
 	CONNECTIONSTRING = "mongodb://localhost:27017"
 	DB               = "db_issue_manager"
+	DBUSER           = "db_user"
 	MATCHES          = "col_matches"
+	USERS            = "col_users"
 	POOL_SIZE        = 10 // Anzahl der Verbindungen im Pool
 )
 
