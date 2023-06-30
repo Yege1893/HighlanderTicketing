@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 )
 
 func ValidateGoogleAccessToken(accessToken string) (bool, error) {
@@ -44,4 +46,33 @@ func ValidateGoogleAccessToken(accessToken string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func GetUserInfo(accessToken string) (model.User, error) {
+	var userInfo model.User
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v1/userinfo", nil)
+	if err != nil {
+		return userInfo, err
+	}
+
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return userInfo, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return userInfo, err
+	}
+
+	err = json.Unmarshal(body, &userInfo)
+	if err != nil {
+		return userInfo, err
+	}
+
+	return userInfo, nil
 }

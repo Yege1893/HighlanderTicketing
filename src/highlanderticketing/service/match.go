@@ -29,28 +29,6 @@ func CreateMatch(match *model.Match) error {
 	return nil
 }
 
-// noch testen nur intern für anbindung an die api
-/*func CreateMatches(list *[]model.Match) error {
-	insertableList := make([]interface{}, len(*list))
-	for i, v := range *list {
-		insertableList[i] = v
-	}
-
-	client, err := db.GetMongoClient()
-	if err != nil {
-		return err
-	}
-
-	collection := client.Database(db.DB).Collection(db.MATCHES)
-
-	_, err = collection.InsertMany(context.TODO(), insertableList)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}*/
-
 func UpdateMatch(matchID primitive.ObjectID, match *model.Match) (*model.Match, error) {
 	result := model.Match{}
 	existingMatch, err := GetMatchByID(matchID)
