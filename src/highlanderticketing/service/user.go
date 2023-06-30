@@ -18,12 +18,11 @@ func CreateUser(user *model.User) error {
 	if isFirstCall == false {
 		user.IsAdmin = false
 	} else if isFirstCall == true {
-		users, err := GetAllUsers()
-		if err != nil {
-			return err
-		}
-		if len(users) == 0 {
+		_, err := GetAllUsers()
+		if err == mongo.ErrNoDocuments {
 			user.IsAdmin = true
+		} else if err != nil {
+			return err
 		} else {
 			user.IsAdmin = false
 		}
@@ -35,8 +34,7 @@ func CreateUser(user *model.User) error {
 		return err
 	}
 
-	filter := bson.D{primitive.E{Key: "email", Value: user.Email}}
-
+	filter := bson.M{"email": user.Email}
 	update := bson.M{
 		"$setOnInsert": bson.M{
 			"_id":         user.ID,

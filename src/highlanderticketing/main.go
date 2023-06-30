@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -8,9 +9,15 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
 )
 
 func main() {
+	service.DeleteAllUsers()
+	var userArray []model.User
+	userArray, _ = service.GetAllUsers()
+	fmt.Println(userArray)
 	//service.DeleteAllMatches()
 	//api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")
 	//init db
