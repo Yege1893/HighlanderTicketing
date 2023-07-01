@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -31,4 +33,20 @@ func getID(r *http.Request) (primitive.ObjectID, error) {
 	}
 
 	return objectID, nil
+}
+func getBearerToken(r *http.Request) (string, error) {
+	reqToken := r.Header.Get("Authorization")
+	if reqToken == "" {
+		log.Error("no Bearer Token in Request")
+		return "", fmt.Errorf("Please parse in Bearer Token")
+
+	}
+	splitToken := strings.Split(reqToken, "Bearer")
+	if len(splitToken) != 2 {
+		log.Error("Beaerer Token could not be extracted")
+		return "", fmt.Errorf("Can not extract Token")
+	}
+
+	reqToken = strings.TrimSpace(splitToken[1])
+	return reqToken, nil
 }

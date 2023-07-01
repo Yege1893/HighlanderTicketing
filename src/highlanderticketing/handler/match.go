@@ -12,9 +12,23 @@ import (
 
 func CreateMatch(w http.ResponseWriter, r *http.Request) {
 	var match *model.Match
-	match, err := getMatch(r)
+	token, err := getBearerToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	valid, err := service.ValidateGoogleAccessToken(token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if valid != true {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	match, err1 := getMatch(r)
+	if err1 != nil {
+		http.Error(w, err1.Error(), http.StatusBadRequest)
 		return
 	}
 	if err := service.CreateMatch(match); err != nil {
@@ -25,7 +39,7 @@ func CreateMatch(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, match)
 }
 
-// noch testen
+// noch testen schauen ob ich das brauche
 /*func CreateMatches(w http.ResponseWriter, r *http.Request) {
 	var match *model.Match
 	match, err := getMatch(r)
@@ -107,8 +121,8 @@ func DeleteMatch(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, result{Success: "OK"})
 }
 
-// nur intern
-/*func DeleteAllMatches(w http.ResponseWriter, r *http.Request) {
+// nur intern mit admin
+func DeleteAllMatches(w http.ResponseWriter, r *http.Request) {
 	err := service.DeleteAllMatches()
 	if err != nil {
 		log.Errorf("Match could not be deleted %v", err)
@@ -118,7 +132,8 @@ func DeleteMatch(w http.ResponseWriter, r *http.Request) {
 		log.Infof("Matches deleted")
 	}
 	sendJson(w, result{Success: "OK"})
-}*/
+}
+
 func getMatch(r *http.Request) (*model.Match, error) {
 	var match *model.Match
 	err := json.NewDecoder(r.Body).Decode(&match)
@@ -131,16 +146,3 @@ func getMatch(r *http.Request) (*model.Match, error) {
 	}
 	return match, nil
 }
-
-/*func getMatches(r *http.Request) (*[]model.Match, error){
-	var match model.Match
-	err := json.NewDecoder(r.Body).Decode(&match)
-	if err != nil {
-		log.Errorf("Can't serialize request body to campaign struct: %v", err)
-		return nil, err
-	} else {
-		log.Infof("request body seralized to campaign struct")
-		log.Tracef("body seralized in struct campaign: %v", match)
-	}
-	return &matches, nil
-}*/

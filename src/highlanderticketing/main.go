@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/api"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
@@ -18,8 +19,8 @@ func main() {
 	var userArray []model.User
 	userArray, _ = service.GetAllUsers()
 	fmt.Println(userArray)
-	//service.DeleteAllMatches()
-	//api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")
+	service.DeleteAllMatches()
+	api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")
 	//init db
 	_, err := db.GetMongoClient()
 	if err != nil {
