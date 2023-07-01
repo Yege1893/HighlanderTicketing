@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,7 +16,7 @@ var (
 )
 
 const (
-	CONNECTIONSTRING = "mongodb://localhost:27017"
+	CONNECTIONSTRING = "mongodb://mongo:27017"
 	DB               = "db_issue_manager"
 	DBUSER           = "db_user"
 	MATCHES          = "col_matches"
@@ -30,6 +31,7 @@ func GetMongoClient() (*mongo.Client, error) {
 		clientOptions.SetMaxPoolSize(POOL_SIZE)
 		client, err := mongo.Connect(context.TODO(), clientOptions)
 		if err != nil {
+			fmt.Println("hier liegt der fehler")
 			clientInstanceError = err
 		}
 		err = client.Ping(context.TODO(), nil)

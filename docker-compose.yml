@@ -1,6 +1,15 @@
 version: “3.8”
 services:
- mongo:
+  highlanderticketing:
+    build:
+      context: ./src
+      dockerfile: highlanderticketing/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_CONNECT=mongo:27017
+      - LOG_LEVEL=info # change to trace for debugging
+  mongo:
    container_name: mongo
    image: mongo:4.4
    ports:
