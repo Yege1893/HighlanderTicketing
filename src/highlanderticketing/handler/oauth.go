@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -28,4 +29,41 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	service.Register(token.AccessToken)
 	sendJson(w, token.AccessToken)
+}
+
+func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) error {
+	token, err := getBearerToken(r)
+	if err != nil {
+		return err
+	}
+	valid, err := service.ValidateGoogleAccessToken(token)
+	if err != nil {
+		return err
+	}
+	if valid != true {
+		return nil
+	}
+	if needAdmin {
+		err := checkAdmin(token)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkAdmin(token string) error {
+	userExternal, err := service.GetUserInfo(token)
+	if err != nil {
+		return err
+	}
+	user, err := service.GetUserByEmail(userExternal.Email)
+	if err != nil {
+		return err
+	}
+	if user.IsAdmin {
+		return nil
+	} else {
+		return fmt.Errorf("User has not Adminrights")
+	}
 }

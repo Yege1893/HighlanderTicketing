@@ -40,6 +40,7 @@ func ValidateGoogleAccessToken(accessToken string) (bool, error) {
 	if tokenInfo.Error != "" {
 		return false, fmt.Errorf("Fehler bei der Überprüfung des Tokens: %s", tokenInfo.Error)
 	}
+	//fmt.Println(tokenInfo.ExpiresIn)
 
 	if tokenInfo.ExpiresIn > 0 {
 		return true, nil

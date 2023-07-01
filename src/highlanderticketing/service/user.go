@@ -147,6 +147,22 @@ func GetUserByID(userID primitive.ObjectID) (*model.User, error) {
 	}
 	return &result, nil
 }
+func GetUserByEmail(email string) (*model.User, error) {
+	result := model.User{}
+	filter := bson.D{primitive.E{Key: "email", Value: email}}
+
+	client, err := db.GetMongoClient()
+	if err != nil {
+		return &result, err
+	}
+	collection := client.Database(db.DB).Collection(db.USERS)
+
+	err = collection.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+		return &result, err
+	}
+	return &result, nil
+}
 
 func DeleteUser(UserID primitive.ObjectID) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: UserID}}

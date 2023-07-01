@@ -10,6 +10,11 @@ import (
 )
 
 func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
+	if err := CheckAccessToken(w, r, false); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 	id, err := getID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -30,6 +35,11 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 
 }
 func AddTravelOrder(w http.ResponseWriter, r *http.Request) {
+	if err := CheckAccessToken(w, r, false); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 	id, err := getID(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

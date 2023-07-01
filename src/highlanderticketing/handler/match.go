@@ -12,25 +12,17 @@ import (
 
 func CreateMatch(w http.ResponseWriter, r *http.Request) {
 	var match *model.Match
-	token, err := getBearerToken(r)
+	if err := CheckAccessToken(w, r, true); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	match, err := getMatch(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	valid, err := service.ValidateGoogleAccessToken(token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if valid != true {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
-	}
-	match, err1 := getMatch(r)
-	if err1 != nil {
-		http.Error(w, err1.Error(), http.StatusBadRequest)
-		return
-	}
+
 	if err := service.CreateMatch(match); err != nil {
 		log.Errorf("Error calling service CreateMatch: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -56,6 +48,11 @@ func CreateMatch(w http.ResponseWriter, r *http.Request) {
 }
 */
 func UpdateMatch(w http.ResponseWriter, r *http.Request) {
+	if err := CheckAccessToken(w, r, true); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 	id, err := getID(r)
 	if err != nil {
 		log.Errorf("Please parse in ID at the url %v", err)
@@ -77,6 +74,11 @@ func UpdateMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllMatches(w http.ResponseWriter, r *http.Request) {
+	if err := CheckAccessToken(w, r, false); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 	matches, err := service.GetAllMatches()
 	if err != nil {
 		log.Errorf("Error calling service GetAllMatches: %v", err)
@@ -87,6 +89,11 @@ func GetAllMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetMatchByID(w http.ResponseWriter, r *http.Request) {
+	if err := CheckAccessToken(w, r, false); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 	id, err := getID(r)
 	if err != nil {
 		log.Errorf("Please parse in ID at the url %v", err)
@@ -101,6 +108,11 @@ func GetMatchByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteMatch(w http.ResponseWriter, r *http.Request) {
+	if err := CheckAccessToken(w, r, true); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 	id, err := getID(r)
 	if err != nil {
 		log.Errorf("Please parse in ID at the url %v", err)
@@ -121,7 +133,7 @@ func DeleteMatch(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, result{Success: "OK"})
 }
 
-// nur intern mit admin
+// nur intern
 func DeleteAllMatches(w http.ResponseWriter, r *http.Request) {
 	err := service.DeleteAllMatches()
 	if err != nil {
