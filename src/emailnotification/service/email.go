@@ -9,9 +9,19 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/emailnotification/model"
 )
 
-func SendEmail( /*toList []string, subject string, body string*/ ) {
+func CreateEmail(emailContenct model.EmialContenct, subject string) (string, string, string) {
+	if subject == "confirmOrder" {
+		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird deine Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Cancelation"
+	}
+	if subject == "confirmCancelation" {
+		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird die Stornierung deiner Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Order"
+	}
+	return "", "", ""
+}
+func SendEmail(receiver string, body string, subject string) {
 	err := godotenv.Load(".env")
 
 	if err != nil {
@@ -24,15 +34,13 @@ func SendEmail( /*toList []string, subject string, body string*/ ) {
 	}
 
 	fmt.Println(from)
-
+	// das von oben nehmen
 	toList := []string{"yannick.ege@web.de"}
 
 	header := make(map[string]string)
 	header["From"] = from.String()
 	header["To"] = strings.Join(toList, ", ")
-	header["Subject"] = "subject"
-
-	body := "test"
+	header["Subject"] = subject
 
 	message := ""
 	for key, value := range header {
@@ -40,7 +48,6 @@ func SendEmail( /*toList []string, subject string, body string*/ ) {
 	}
 	message += "\r\n" + body
 
-	// über os variablen holen
 	smtpServer := "smtp.web.de"
 	smtpPort := "587"
 	password := os.Getenv("EMAIL_PW")

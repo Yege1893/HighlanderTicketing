@@ -1,5 +1,16 @@
 version: “3.8”
 services:
+  emailnotification:
+    build:
+      context: ./src
+      dockerfile: emailnotification/Dockerfile
+    ports:
+      - "8001:8001"
+    depends_on:
+      - nats
+    environment:
+      - NATS_CONNECT=nats:4222
+      - LOG_LEVEL=info # change to trace for debugging
   highlanderticketing:
     build:
       context: ./src
@@ -7,6 +18,8 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - NATS_CONNECT=nats:4222
+      - EMAILNOT_CONNECT=emailnotification:8001
       - DB_CONNECT=mongo:27017
       - LOG_LEVEL=info # change to trace for debugging
   mongo:
@@ -15,3 +28,8 @@ services:
    ports:
      - 27017:27017
    command: mongod
+  nats:
+    image: nats:latest
+    container_name: nats
+    ports:
+     - 4222:4222

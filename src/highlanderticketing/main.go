@@ -1,10 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
@@ -18,6 +22,17 @@ func main() {
 	service.DeleteAllMatches()
 	api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")*/
 	//init db
+
+	if err := godotenv.Load(".env"); err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	natsUrl := os.Getenv("NATS_URL")
+	nc, _ := nats.Connect(natsUrl)
+
+	rep, _ := nc.Request("Order", nil, time.Second)
+	fmt.Println("hier die response", rep)
+
 	_, err := db.GetMongoClient()
 	if err != nil {
 		log.Fatal(err)
