@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
@@ -11,76 +13,69 @@ import (
 
 func main() {
 	err := godotenv.Load(".env")
-
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Error loading .env file: %v", err)
 	}
 	fmt.Println("aufgerufen")
 
-	//testemailcontent := model.EmialContenct{Name: "Yannick", Location: "Stuttgart"}
-	//receiver, body, subject := service.CreateEmail(testemailcontent, "confirmOrder")
-	//service.SendEmail(receiver, body, subject)
+	time.Sleep(2 * time.Second)
 
 	natsUrl := os.Getenv("NATS_URL")
-	if nc, err := nats.Connect(natsUrl); err != nil {
-		fmt.Println(err, nc)
+	nc, err := nats.Connect(natsUrl)
+	if err != nil {
+		log.Fatalf("Error connecting to NATS server: %v", err)
 	}
+	defer nc.Close()
+
+	var wg sync.WaitGroup
+
+	wg.Add(2)
 
 	go func() {
+		defer wg.Done()
 		fmt.Println("wird aufgerufen")
-		nc, err := nats.Connect(natsUrl)
+		orderSub, err := nc.SubscribeSync("Order")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Error subscribing to 'Order': %v", err)
 		}
-		defer nc.Close()
-		sub, err := nc.SubscribeSync("Order")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Println("Service hört auf die Subscription:", sub.Subject)
+		log.Println("Service hört auf die Subscription:", orderSub.Subject)
 
 		for {
-			msg, err := sub.NextMsg(0)
+			msg, err := orderSub.NextMsg(-1)
 			if err != nil {
-				log.Fatal(err)
+				log.Println("Error receiving message:", err)
+				continue
 			}
-			log.Printf("Nachricht erhalten: %s", msg.Data)
-
-			// Führe hier deine spezifische Logik aus, um die Nachricht zu verarbeiten
-
-			// Bestätige die Verarbeitung der Nachricht
-			msg.Ack()
+			if msg != nil {
+				log.Printf("Nachricht erhalten: %s", msg.Data)
+				msg.Ack()
+			}
 		}
 
 	}()
 
 	go func() {
-		nc, err := nats.Connect(natsUrl)
+		defer wg.Done()
+		cancelationSub, err := nc.SubscribeSync("Cancelation")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Error subscribing to 'Cancelation': %v", err)
 		}
-		defer nc.Close()
-		sub, err := nc.SubscribeSync("Cancelation")
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		log.Println("Service hört auf die Subscription:", sub.Subject)
+		log.Println("Service hört auf die Subscription:", cancelationSub.Subject)
 
 		for {
-			msg, err := sub.NextMsg(0)
+			msg, err := cancelationSub.NextMsg(-1)
 			if err != nil {
-				log.Fatal(err)
+				log.Println("Error receiving message:", err)
+				continue
 			}
-			log.Printf("Nachricht erhalten: %s", msg.Data)
-
-			// Führe hier deine spezifische Logik aus, um die Nachricht zu verarbeiten
-
-			// Bestätige die Verarbeitung der Nachricht
-			msg.Ack()
+			if msg != nil {
+				log.Printf("Nachricht erhalten: %s", msg.Data)
+				msg.Ack()
+			}
 		}
 
 	}()
+	wg.Wait()
 
+	fmt.Println("Alle Go-Routinen sind abgeschlossen. Hauptprogramm wird beendet.")
 }
