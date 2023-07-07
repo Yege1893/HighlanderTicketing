@@ -1,81 +1,60 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"sync"
-	"time"
+	"net/http"
 
-	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/emailnotification/model"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/emailnotification/service"
 )
 
 func main() {
-	err := godotenv.Load(".env")
+	nc, err := service.ConnectToNats()
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		log.Fatalf("unable to connect to nats", err)
 	}
-	fmt.Println("aufgerufen")
+	nc.Subscribe("confirmOrder", func(m *nats.Msg) {
+		var (
+			req model.EmialContent
+			res model.Response
+		)
+		if err := json.Unmarshal(m.Data, &req); err != nil {
+			panic(err)
+		}
 
-	time.Sleep(2 * time.Second)
+		// hier email verschicken auslösen, wenn kein error --> dann response tru verschicken
 
-	natsUrl := os.Getenv("NATS_URL")
-	nc, err := nats.Connect(natsUrl)
-	if err != nil {
-		log.Fatalf("Error connecting to NATS server: %v", err)
+		res.Send = true
+		e, errMarshal := json.Marshal(res)
+		if errMarshal != nil {
+			fmt.Println(errMarshal)
+			return
+		}
+		nc.Publish(m.Reply, []byte(e))
+	})
+
+	nc.Subscribe("confirmCancel", func(m *nats.Msg) {
+		var (
+			req model.EmialContent
+			res model.Response
+		)
+		if err := json.Unmarshal(m.Data, &req); err != nil {
+			panic(err)
+		}
+		res.Send = true
+		e, errMarshal := json.Marshal(res)
+		if errMarshal != nil {
+			fmt.Println(errMarshal)
+			return
+		}
+		nc.Publish(m.Reply, []byte(e))
+	})
+
+	if err := http.ListenAndServe(":8181", nil); err != nil {
+		log.Fatal(err)
 	}
-	defer nc.Close()
 
-	var wg sync.WaitGroup
-
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
-		fmt.Println("wird aufgerufen")
-		orderSub, err := nc.SubscribeSync("Order")
-		if err != nil {
-			log.Fatalf("Error subscribing to 'Order': %v", err)
-		}
-		log.Println("Service hört auf die Subscription:", orderSub.Subject)
-
-		for {
-			msg, err := orderSub.NextMsg(-1)
-			if err != nil {
-				log.Println("Error receiving message:", err)
-				continue
-			}
-			if msg != nil {
-				log.Printf("Nachricht erhalten: %s", msg.Data)
-				msg.Ack()
-			}
-		}
-
-	}()
-
-	go func() {
-		defer wg.Done()
-		cancelationSub, err := nc.SubscribeSync("Cancelation")
-		if err != nil {
-			log.Fatalf("Error subscribing to 'Cancelation': %v", err)
-		}
-		log.Println("Service hört auf die Subscription:", cancelationSub.Subject)
-
-		for {
-			msg, err := cancelationSub.NextMsg(-1)
-			if err != nil {
-				log.Println("Error receiving message:", err)
-				continue
-			}
-			if msg != nil {
-				log.Printf("Nachricht erhalten: %s", msg.Data)
-				msg.Ack()
-			}
-		}
-
-	}()
-	wg.Wait()
-
-	fmt.Println("Alle Go-Routinen sind abgeschlossen. Hauptprogramm wird beendet.")
 }

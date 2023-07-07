@@ -12,7 +12,7 @@ import (
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/emailnotification/model"
 )
 
-func CreateEmail(emailContenct model.EmialContenct, subject string) (string, string, string) {
+func CreateEmail(emailContenct model.EmialContent, subject string) (string, string, string) {
 	if subject == "confirmOrder" {
 		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird deine Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Cancelation"
 	}

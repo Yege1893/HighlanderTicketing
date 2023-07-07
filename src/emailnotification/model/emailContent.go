@@ -1,9 +1,9 @@
 package model
 
-type EmialContenct struct {
-	Name        string
-	AwayMatch   bool
-	Location    string
-	Date        string
-	Emailadress string
+type EmialContent struct {
+	Name        string `json:"name"`
+	AwayMatch   bool   `json:"awaymatch"`
+	Location    string `json:"location"`
+	Date        string `json:"date"`
+	Emailadress string `json:"emailadress"`
 }
