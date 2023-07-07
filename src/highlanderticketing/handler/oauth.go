@@ -13,13 +13,18 @@ import (
 )
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
-	oauthConfig := config.GetOAuthConfig()
+	oauthConfig := config.GetOAuthConfigLogin()
 	url := oauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
-func HandleCallback(w http.ResponseWriter, r *http.Request) {
-	oauthConfig := config.GetOAuthConfig()
+func HandleRegister(w http.ResponseWriter, r *http.Request) {
+	oauthConfig := config.GetOAuthConfigRegister()
+	url := oauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+func HandleCallbackRegister(w http.ResponseWriter, r *http.Request) {
+	oauthConfig := config.GetOAuthConfigRegister()
 	code := r.URL.Query().Get("code")
 	token, err := oauthConfig.Exchange(context.Background(), code)
 	if err != nil {
@@ -28,6 +33,17 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	service.Register(token.AccessToken)
+}
+
+func HandleCallback(w http.ResponseWriter, r *http.Request) {
+	oauthConfig := config.GetOAuthConfigLogin()
+	code := r.URL.Query().Get("code")
+	token, err := oauthConfig.Exchange(context.Background(), code)
+	if err != nil {
+		log.Println("Fehler beim Austausch des Autorisierungscodes:", err)
+		http.Error(w, "Fehler beim Authentifizieren", http.StatusInternalServerError)
+		return
+	}
 	sendJson(w, token.AccessToken)
 }
 

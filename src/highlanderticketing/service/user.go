@@ -52,11 +52,14 @@ func CreateUser(user *model.User) error {
 	result := collection.FindOneAndUpdate(context.TODO(), filter, update, options)
 
 	if result.Err() == mongo.ErrNoDocuments {
+		fmt.Println(3)
 		return nil // dokument wurd erstellt
 	} else if result.Err() != nil {
+		fmt.Println(2)
 		return result.Err() // fehler beim process an sich
 	} else {
-		return nil // erstellt oder nicht aktualisiert
+		fmt.Println(1)
+		return fmt.Errorf("Der Benutzer existiert bereits")
 	}
 }
 

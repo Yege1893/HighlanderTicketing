@@ -13,19 +13,20 @@ import (
 )
 
 func CreateEmail(emailContenct model.EmialContent, subject string) (string, string, string) {
-	if subject == "confirmOrder" {
-		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird deine Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Cancelation"
+	if subject == "confirm" {
+		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird deine Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Order"
 	}
-	if subject == "confirmCancelation" {
-		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird die Stornierung deiner Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Order"
+	if subject == "cancel" {
+		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird die Stornierung deiner Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Cancelation"
 	}
 	return "", "", ""
 }
-func SendEmail(receiver string, body string, subject string) {
+func SendEmail(receiver string, body string, subject string) error {
 	err := godotenv.Load(".env")
 
 	if err != nil {
 		log.Fatalf("Error loading .env file")
+		return fmt.Errorf("Error loading .env file")
 	}
 
 	from := mail.Address{
@@ -33,9 +34,8 @@ func SendEmail(receiver string, body string, subject string) {
 		Address: os.Getenv("EMAIL_ADRESS"),
 	}
 
-	fmt.Println(from)
-	// das von oben nehmen
-	toList := []string{"yannick.ege@web.de"}
+	toList := []string{}
+	toList = append(toList, receiver)
 
 	header := make(map[string]string)
 	header["From"] = from.String()
@@ -56,9 +56,7 @@ func SendEmail(receiver string, body string, subject string) {
 
 	err1 := smtp.SendMail(smtpServer+":"+smtpPort, auth, from.Address, toList, []byte(message))
 	if err1 != nil {
-		fmt.Println(err1)
-		os.Exit(1)
+		return err1
 	}
-
-	fmt.Println("E-Mail erfolgreich gesendet.")
+	return nil
 }

@@ -16,7 +16,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("unable to connect to nats", err)
 	}
-	nc.Subscribe("confirmOrder", func(m *nats.Msg) {
+	nc.Subscribe("confirmOrder.*", func(m *nats.Msg) {
 		var (
 			req model.EmialContent
 			res model.Response
@@ -25,9 +25,13 @@ func main() {
 			panic(err)
 		}
 
-		// hier email verschicken auslösen, wenn kein error --> dann response tru verschicken
-
-		res.Send = true
+		emailadre, emailcontent, emailtype := service.CreateEmail(req, "confirm")
+		err := service.SendEmail(emailadre, emailcontent, emailtype)
+		if err != nil {
+			res.Send = false
+		} else {
+			res.Send = true
+		}
 		e, errMarshal := json.Marshal(res)
 		if errMarshal != nil {
 			fmt.Println(errMarshal)
@@ -36,7 +40,7 @@ func main() {
 		nc.Publish(m.Reply, []byte(e))
 	})
 
-	nc.Subscribe("confirmCancel", func(m *nats.Msg) {
+	nc.Subscribe("confirmCancel.*", func(m *nats.Msg) {
 		var (
 			req model.EmialContent
 			res model.Response
@@ -44,7 +48,12 @@ func main() {
 		if err := json.Unmarshal(m.Data, &req); err != nil {
 			panic(err)
 		}
-		res.Send = true
+		emailadre, emailcontent, emailtype := service.CreateEmail(req, "cancel")
+		if err := service.SendEmail(emailadre, emailcontent, emailtype); err != nil {
+			res.Send = false
+		} else {
+			res.Send = true
+		}
 		e, errMarshal := json.Marshal(res)
 		if errMarshal != nil {
 			fmt.Println(errMarshal)

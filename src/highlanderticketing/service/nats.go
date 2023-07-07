@@ -15,16 +15,37 @@ type NatsServer struct {
 }
 
 func (s NatsServer) ConfirmOrder(e *model.EmialContent) {
+	var res *model.Response
 	emailContenct, errMarshal := json.Marshal(e)
 	if errMarshal != nil {
 		fmt.Println(errMarshal)
 		return
 	}
-	response, err := s.Nc.Request("confirmOrder", []byte(emailContenct), 2*time.Second)
+	response, err := s.Nc.Request("confirmOrder."+string(e.OrderID), []byte(emailContenct), 2*time.Second)
 	if err != nil {
 		log.Println("Error making NATS request:", err)
 	}
-	fmt.Println("hier die nats response", string(response.Data))
+
+	if err := json.Unmarshal(response.Data, &res); err != nil {
+		panic(err)
+	}
+	fmt.Println("hier die nats response", *res)
 }
 
-// hier dann confirm cancel
+func (s NatsServer) confirmCancel(e *model.EmialContent) {
+	var res *model.Response
+	emailContenct, errMarshal := json.Marshal(e)
+	if errMarshal != nil {
+		fmt.Println(errMarshal)
+		return
+	}
+	response, err := s.Nc.Request("confirmOrder."+string(e.Emailadress), []byte(emailContenct), 2*time.Second)
+	if err != nil {
+		log.Println("Error making NATS request:", err)
+	}
+
+	if err := json.Unmarshal(response.Data, &res); err != nil {
+		panic(err)
+	}
+	fmt.Println("hier die nats response", &res)
+}

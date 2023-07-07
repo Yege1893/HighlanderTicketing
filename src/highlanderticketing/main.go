@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -16,12 +17,12 @@ import (
 )
 
 func main() {
-	/*service.DeleteAllUsers()
+	service.DeleteAllUsers()
 	var userArray []model.User
 	userArray, _ = service.GetAllUsers()
-	fmt.Println(userArray)
-	service.DeleteAllMatches()
-	api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")*/
+	fmt.Println(userArray) /*
+		service.DeleteAllMatches()
+		api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")*/
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading .env file")
@@ -45,14 +46,16 @@ func main() {
 	}
 
 	fmt.Println("Connected to NATS at:", natsServer.Nc.ConnectedUrl())
-
-	e := model.EmialContent{Name: "aa", AwayMatch: true, Location: "ss", Date: "aaa", Emailadress: "aaa"}
+	var nr = strconv.Itoa(1)
+	e := model.EmialContent{Name: "aa", AwayMatch: true, Location: "ss", Date: "aaa", Emailadress: "yannick.ege@web.de", OrderID: nr}
 	natsServer.ConfirmOrder(&e)
 
 	log.Println("Starting Highlander Ticketing server")
 	router := mux.NewRouter()
+	router.HandleFunc("/register", handler.HandleRegister).Methods("GET")
+	router.HandleFunc("/callback/register", handler.HandleCallback).Methods("GET")
 	router.HandleFunc("/login", handler.HandleLogin).Methods("GET")
-	router.HandleFunc("/callback", handler.HandleCallback).Methods("GET")
+	router.HandleFunc("/callback/login", handler.HandleCallback).Methods("GET")
 	router.HandleFunc("/health", handler.Health).Methods("GET")
 	router.HandleFunc("/match", handler.CreateMatch).Methods("POST")
 	router.HandleFunc("/matches", handler.GetAllMatches).Methods("GET")
