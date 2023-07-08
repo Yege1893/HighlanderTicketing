@@ -25,9 +25,20 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	reqToken, err := getBearerToken(r)
+	if err != nil {
+		log.Errorf("Failure loading bearer token  %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	userOfOrder, err := service.GetUserInfo(reqToken)
+	if err != nil {
+		log.Errorf("Failure loading user Info %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	order.User = userOfOrder
 	err = service.AddMatchOrder(id, order)
 	if err != nil {
-		log.Errorf("Failure adding donation to campaign with ID %v: %v", id, err)
+		log.Errorf("Failure adding order to match with ID %v: %v", id, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -50,6 +61,17 @@ func AddTravelOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	reqToken, err := getBearerToken(r)
+	if err != nil {
+		log.Errorf("Failure loading bearer token  %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	userOfOrder, err := service.GetUserInfo(reqToken)
+	if err != nil {
+		log.Errorf("Failure loading user Info %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	order.User = userOfOrder
 	err = service.AddTravelOrder(id, order)
 	if err != nil {
 		log.Errorf("Failure adding donation to campaign with ID %v: %v", id, err)
