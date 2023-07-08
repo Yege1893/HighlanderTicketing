@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -32,16 +33,35 @@ func HandleCallbackRegister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Fehler beim Authentifizieren", http.StatusInternalServerError)
 		return
 	}
-	service.Register(token.AccessToken)
+	err = service.Register(token.AccessToken)
+	if err != nil {
+		fmt.Println(err)
+		io.WriteString(w, `user besteht bereits`)
+	} else {
+		sendJson(w, "user erfolgreich angelegt")
+	}
+
 }
 
-func HandleCallback(w http.ResponseWriter, r *http.Request) {
+func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 	oauthConfig := config.GetOAuthConfigLogin()
 	code := r.URL.Query().Get("code")
 	token, err := oauthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		log.Println("Fehler beim Austausch des Autorisierungscodes:", err)
 		http.Error(w, "Fehler beim Authentifizieren", http.StatusInternalServerError)
+		return
+	}
+	// den teil in eine routine packen
+	user, err := service.GetUserInfo(token.AccessToken)
+	if err != nil {
+		sendJson(w, err)
+		return
+	}
+	_, errUser := service.GetUserByEmail(user.Email)
+	if errUser != nil {
+		sendJson(w, err)
+		sendJson(w, "user nicht registriert")
 		return
 	}
 	sendJson(w, token.AccessToken)
@@ -80,6 +100,6 @@ func checkAdmin(token string) error {
 	if user.IsAdmin {
 		return nil
 	} else {
-		return fmt.Errorf("User has not Adminrights")
+		return fmt.Errorf("User has not adminrights")
 	}
 }

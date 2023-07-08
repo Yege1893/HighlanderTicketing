@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -45,17 +44,17 @@ func main() {
 		log.Fatal("Error establishing connection to NATS:", err)
 	}
 
-	fmt.Println("Connected to NATS at:", natsServer.Nc.ConnectedUrl())
-	var nr = strconv.Itoa(1)
-	e := model.EmialContent{Name: "aa", AwayMatch: true, Location: "ss", Date: "aaa", Emailadress: "yannick.ege@web.de", OrderID: nr}
-	natsServer.ConfirmOrder(&e)
+	//fmt.Println("Connected to NATS at:", natsServer.Nc.ConnectedUrl())
+	//var nr = strconv.Itoa(1)
+	//e := model.EmialContent{Name: "aa", AwayMatch: true, Location: "ss", Date: "aaa", Emailadress: "yannick.ege@web.de", OrderID: nr}
+	//natsServer.ConfirmOrder(&e)
 
 	log.Println("Starting Highlander Ticketing server")
 	router := mux.NewRouter()
 	router.HandleFunc("/register", handler.HandleRegister).Methods("GET")
-	router.HandleFunc("/callback/register", handler.HandleCallback).Methods("GET")
+	router.HandleFunc("/callback/register", handler.HandleCallbackRegister).Methods("GET")
 	router.HandleFunc("/login", handler.HandleLogin).Methods("GET")
-	router.HandleFunc("/callback/login", handler.HandleCallback).Methods("GET")
+	router.HandleFunc("/callback/login", handler.HandleCallbackLogin).Methods("GET")
 	router.HandleFunc("/health", handler.Health).Methods("GET")
 	router.HandleFunc("/match", handler.CreateMatch).Methods("POST")
 	router.HandleFunc("/matches", handler.GetAllMatches).Methods("GET")
