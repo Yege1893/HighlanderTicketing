@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -8,18 +9,20 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/api"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
 )
 
 func main() {
-	/*service.DeleteAllUsers()
+	service.DeleteAllUsers()
 	var userArray []model.User
 	userArray, _ = service.GetAllUsers()
 	fmt.Println(userArray)
 	service.DeleteAllMatches()
-	api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")*/
+	api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading .env file")
@@ -51,6 +54,7 @@ func main() {
 	router.HandleFunc("/match/{id}", handler.DeleteMatch).Methods("DELETE")
 	router.HandleFunc("/match/{id}/matchorder", handler.AddMatchOrder).Methods("POST")
 	router.HandleFunc("/match/{id}/travelorder", handler.AddTravelOrder).Methods("POST")
+	router.HandleFunc("/match/{id}/cancelorder/{orderid}", handler.CancelOrder).Methods("PUT")
 	if err := http.ListenAndServe(":8000", router); err != nil {
 		log.Fatal(err)
 	}

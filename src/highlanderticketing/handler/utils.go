@@ -34,6 +34,19 @@ func getID(r *http.Request) (primitive.ObjectID, error) {
 
 	return objectID, nil
 }
+func getOrderID(r *http.Request) (primitive.ObjectID, error) {
+	vars := mux.Vars(r)
+	id := vars["orderid"]
+
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Errorf("Can't get ObjectID from request: %v", err)
+		return primitive.NilObjectID, err
+	}
+
+	return objectID, nil
+}
+
 func getBearerToken(r *http.Request) (string, error) {
 	reqToken := r.Header.Get("Authorization")
 	if reqToken == "" {

@@ -49,7 +49,7 @@ func ValidateGoogleAccessToken(accessToken string) (bool, error) {
 	return false, nil
 }
 
-func GetUserInfo(accessToken string) (model.User, error) {
+func GetUserInfoByToken(accessToken string) (model.User, error) {
 	var userInfo model.User
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v1/userinfo", nil)

@@ -7,7 +7,7 @@ import (
 )
 
 func Register(accessToken string) error {
-	user, err := GetUserInfo(accessToken)
+	user, err := GetUserInfoByToken(accessToken)
 	if err != nil {
 		return err
 	}

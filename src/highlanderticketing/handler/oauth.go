@@ -53,7 +53,7 @@ func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// den teil in eine routine packen
-	user, err := service.GetUserInfo(token.AccessToken)
+	user, err := service.GetUserInfoByToken(token.AccessToken)
 	if err != nil {
 		sendJson(w, err)
 		return
@@ -89,7 +89,7 @@ func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) er
 }
 
 func checkAdmin(token string) error {
-	userExternal, err := service.GetUserInfo(token)
+	userExternal, err := service.GetUserInfoByToken(token)
 	if err != nil {
 		return err
 	}

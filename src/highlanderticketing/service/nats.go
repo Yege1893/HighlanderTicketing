@@ -33,38 +33,43 @@ func ConnectToNats() (NatsServer, error) {
 
 }
 
-func (s NatsServer) ConfirmOrder(e *model.EmialContent) {
+func (s NatsServer) ConfirmOrder(e *model.EmialContent) error {
 	var res *model.Response
 	emailContenct, errMarshal := json.Marshal(e)
 	if errMarshal != nil {
 		fmt.Println(errMarshal)
-		return
+		return fmt.Errorf(errMarshal.Error())
 	}
 	response, err := s.Nc.Request("confirmOrder."+string(e.OrderID), []byte(emailContenct), 2*time.Second)
 	if err != nil {
 		log.Println("Error making NATS request:", err)
+		return fmt.Errorf(err.Error())
 	}
 
 	if err := json.Unmarshal(response.Data, &res); err != nil {
-		panic(err)
+		return fmt.Errorf(err.Error())
 	}
 	fmt.Println("hier die nats response", *res)
+	return nil
 }
 
-func (s NatsServer) confirmCancel(e *model.EmialContent) {
+func (s NatsServer) ConfirmCancel(e *model.EmialContent) error {
 	var res *model.Response
 	emailContenct, errMarshal := json.Marshal(e)
 	if errMarshal != nil {
 		fmt.Println(errMarshal)
-		return
+		return fmt.Errorf(errMarshal.Error())
 	}
-	response, err := s.Nc.Request("confirmOrder."+string(e.Emailadress), []byte(emailContenct), 2*time.Second)
+	response, err := s.Nc.Request("confirmOrder."+string(e.OrderID), []byte(emailContenct), 2*time.Second)
 	if err != nil {
 		log.Println("Error making NATS request:", err)
+		return fmt.Errorf(err.Error())
 	}
 
 	if err := json.Unmarshal(response.Data, &res); err != nil {
-		panic(err)
+		return fmt.Errorf(err.Error())
 	}
+
 	fmt.Println("hier die nats response", &res)
+	return nil
 }

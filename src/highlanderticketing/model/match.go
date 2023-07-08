@@ -12,6 +12,7 @@ type Match struct {
 	Location              string             `bson:"location"`
 	Date                  string             `bson:"date, omitempty"`
 	Travel                Travel             `bson:"travel"`
+	OrderAmount           int32              `bson:"orderamount, omitempty"`
 	Orders                []Order            `bson:"orders"`
 }
 
