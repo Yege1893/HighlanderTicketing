@@ -31,22 +31,6 @@ func CreateMatch(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, match)
 }
 
-// noch testen schauen ob ich das brauche
-/*func CreateMatches(w http.ResponseWriter, r *http.Request) {
-	var match *model.Match
-	match, err := getMatch(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	if err := service.CreateMatch(match); err != nil {
-		log.Errorf("Error calling service CreateMatch: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	sendJson(w, match)
-}
-*/
 func UpdateMatch(w http.ResponseWriter, r *http.Request) {
 	if err := CheckAccessToken(w, r, true); err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)

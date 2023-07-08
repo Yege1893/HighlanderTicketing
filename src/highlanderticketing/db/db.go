@@ -21,7 +21,7 @@ const (
 	DBUSER           = "db_user"
 	MATCHES          = "col_matches"
 	USERS            = "col_users"
-	POOL_SIZE        = 10 // Anzahl der Verbindungen im Pool
+	POOL_SIZE        = 10000 // Anzahl der Verbindungen im Pool
 )
 
 func GetMongoClient() (*mongo.Client, error) {
@@ -42,4 +42,13 @@ func GetMongoClient() (*mongo.Client, error) {
 	})
 
 	return clientInstance, clientInstanceError
+}
+func CloseMongoClient() error {
+	if clientInstance != nil {
+		err := clientInstance.Disconnect(context.Background())
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

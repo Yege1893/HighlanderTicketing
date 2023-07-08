@@ -23,6 +23,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	if err != nil {
 		return err
 	}
+
 	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	err = collection.FindOne(context.TODO(), filter).Decode(&matchToFind)
@@ -59,6 +60,7 @@ func AddTravelOrder(matchID primitive.ObjectID, order *model.Order) error {
 	if err != nil {
 		return err
 	}
+
 	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	err = collection.FindOne(context.TODO(), filter).Decode(&matchToFind)

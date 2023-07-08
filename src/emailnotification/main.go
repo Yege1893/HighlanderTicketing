@@ -14,7 +14,7 @@ import (
 func main() {
 	nc, err := service.ConnectToNats()
 	if err != nil {
-		log.Fatalf("unable to connect to nats", err)
+		log.Fatalf("unable to connect to nats %v", err)
 	}
 	nc.Subscribe("confirmOrder.*", func(m *nats.Msg) {
 		var (

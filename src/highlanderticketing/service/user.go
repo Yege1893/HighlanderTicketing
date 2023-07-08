@@ -33,13 +33,11 @@ func CreateUser(user *model.User) error {
 	if err != nil {
 		return err
 	}
-
 	filter := bson.M{"email": user.Email}
 	update := bson.M{
 		"$setOnInsert": bson.M{
 			"_id":         user.ID,
 			"email":       user.Email,
-			"google_id":   user.GoogleID,
 			"name":        user.Name,
 			"family_name": user.FamilyName,
 			"is_admin":    user.IsAdmin,
@@ -74,7 +72,6 @@ func UpdateUser(userID primitive.ObjectID, user *model.User) (*model.User, error
 
 	updater := bson.D{primitive.E{Key: "$set", Value: bson.D{
 		primitive.E{Key: "email", Value: user.Email},
-		primitive.E{Key: "google_id", Value: user.GoogleID},
 		primitive.E{Key: "name", Value: user.Name},
 		primitive.E{Key: "family_name", Value: user.FamilyName},
 		primitive.E{Key: "is_admin", Value: user.IsAdmin},
@@ -84,6 +81,7 @@ func UpdateUser(userID primitive.ObjectID, user *model.User) (*model.User, error
 	if err != nil {
 		return nil, err
 	}
+
 	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	updateResult, err := collection.UpdateOne(context.TODO(), filter, updater)
@@ -142,6 +140,7 @@ func GetUserByID(userID primitive.ObjectID) (*model.User, error) {
 	if err != nil {
 		return &result, err
 	}
+
 	collection := client.Database(db.DB).Collection(db.USERS)
 
 	err = collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -158,6 +157,7 @@ func GetUserByEmail(email string) (*model.User, error) {
 	if err != nil {
 		return &result, err
 	}
+
 	collection := client.Database(db.DB).Collection(db.USERS)
 
 	err = collection.FindOne(context.TODO(), filter).Decode(&result)
@@ -173,6 +173,7 @@ func DeleteUser(UserID primitive.ObjectID) error {
 	if err != nil {
 		return err
 	}
+
 	collection := client.Database(db.DB).Collection(db.USERS)
 	_, err = collection.DeleteOne(context.TODO(), filter)
 	if err != nil {
@@ -187,6 +188,7 @@ func DeleteAllUsers() error {
 	if err != nil {
 		return err
 	}
+
 	collection := client.Database(db.DB).Collection(db.USERS)
 	_, err = collection.DeleteMany(context.TODO(), selector)
 	if err != nil {

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -11,25 +10,19 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
-	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
 )
 
 func main() {
-	service.DeleteAllUsers()
+	/*service.DeleteAllUsers()
 	var userArray []model.User
 	userArray, _ = service.GetAllUsers()
-	fmt.Println(userArray) /*
-		service.DeleteAllMatches()
-		api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")*/
+	fmt.Println(userArray)
+	service.DeleteAllMatches()
+	api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")*/
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading .env file")
-	}
-
-	_, err := db.GetMongoClient()
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	var natsServer service.NatsServer
@@ -43,11 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Error establishing connection to NATS:", err)
 	}
-
-	//fmt.Println("Connected to NATS at:", natsServer.Nc.ConnectedUrl())
-	//var nr = strconv.Itoa(1)
-	//e := model.EmialContent{Name: "aa", AwayMatch: true, Location: "ss", Date: "aaa", Emailadress: "yannick.ege@web.de", OrderID: nr}
-	//natsServer.ConfirmOrder(&e)
 
 	log.Println("Starting Highlander Ticketing server")
 	router := mux.NewRouter()
@@ -67,9 +55,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = db.CloseMongoClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func init() {
+	//init db
+	_, err := db.GetMongoClient()
+	if err != nil {
+		log.Fatal(err)
+	}
 	// init logger
 	log.SetFormatter(&log.TextFormatter{})
 	log.SetReportCaller(true)

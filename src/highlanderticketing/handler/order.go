@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -30,12 +31,21 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Failure loading bearer token  %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+	fmt.Println(reqToken, "reqToken")
 	userOfOrder, err := service.GetUserInfo(reqToken)
 	if err != nil {
 		log.Errorf("Failure loading user Info %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	order.User = userOfOrder
+	fmt.Println(userOfOrder, "userOfOrder")
+	internalUser, err := service.GetUserByEmail(userOfOrder.Email)
+	if err != nil {
+		log.Errorf("Failure loading internal user Info %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	fmt.Println(internalUser, 2)
+	order.User = *internalUser
+	fmt.Println(order.User, 3)
 	err = service.AddMatchOrder(id, order)
 	if err != nil {
 		log.Errorf("Failure adding order to match with ID %v: %v", id, err)
@@ -71,7 +81,13 @@ func AddTravelOrder(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Failure loading user Info %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	order.User = userOfOrder
+	internalUser, err := service.GetUserByEmail(userOfOrder.Email)
+	if err != nil {
+		log.Errorf("Failure loading internal user Info %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	order.User = *internalUser
+
 	err = service.AddTravelOrder(id, order)
 	if err != nil {
 		log.Errorf("Failure adding donation to campaign with ID %v: %v", id, err)

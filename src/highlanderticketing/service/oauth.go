@@ -69,7 +69,6 @@ func GetUserInfo(accessToken string) (model.User, error) {
 	if err != nil {
 		return userInfo, err
 	}
-
 	err = json.Unmarshal(body, &userInfo)
 	if err != nil {
 		return userInfo, err
