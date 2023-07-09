@@ -69,7 +69,9 @@ func CancelOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	order, err := getOrder(r)
+	fmt.Println(orderId, "orderid")
+	order, err := service.GetOrderById(orderId)
+	fmt.Println("order ", order)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -89,9 +91,9 @@ func CancelOrder(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Failure loading internal user Info %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-	order.User = *internalUser
-	order.ID = orderId
-	fmt.Println(orderId, "orderId")
+	if order.User != *internalUser {
+		sendJson(w, "user is not allowed to cancel this order")
+	}
 
 	err = service.CancelOrder(id, order)
 	if err != nil {

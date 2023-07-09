@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
@@ -177,6 +178,31 @@ func CancelOrder(matchID primitive.ObjectID, order *model.Order) error {
 	}
 	return nil
 
+}
+
+func GetOrderById(orderID primitive.ObjectID) (*model.Order, error) {
+	client, err := db.GetMongoClient()
+	if err != nil {
+		return nil, err
+	}
+	collection := client.Database(db.DB).Collection(db.MATCHES)
+
+	filter := bson.M{"orders._id": orderID}
+
+	var result model.Match
+
+	err = collection.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, order := range result.Orders {
+		if order.ID == orderID {
+			return &order, nil
+		}
+	}
+
+	return nil, errors.New("Order not found")
 }
 
 func deleteOrder(matchID primitive.ObjectID, orderID primitive.ObjectID) error {

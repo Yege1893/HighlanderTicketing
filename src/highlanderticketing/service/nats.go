@@ -60,7 +60,7 @@ func (s NatsServer) ConfirmCancel(e *model.EmialContent) error {
 		fmt.Println(errMarshal)
 		return fmt.Errorf(errMarshal.Error())
 	}
-	response, err := s.Nc.Request("confirmOrder."+string(e.OrderID), []byte(emailContenct), 2*time.Second)
+	response, err := s.Nc.Request("confirmCancel."+string(e.OrderID), []byte(emailContenct), 2*time.Second)
 	if err != nil {
 		log.Println("Error making NATS request:", err)
 		return fmt.Errorf(err.Error())
@@ -70,6 +70,6 @@ func (s NatsServer) ConfirmCancel(e *model.EmialContent) error {
 		return fmt.Errorf(err.Error())
 	}
 
-	fmt.Println("hier die nats response", &res)
+	fmt.Println("hier die nats response", *res)
 	return nil
 }
