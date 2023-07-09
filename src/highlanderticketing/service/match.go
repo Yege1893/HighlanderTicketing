@@ -14,8 +14,6 @@ import (
 func CreateMatch(match *model.Match) error {
 	match.ID = primitive.NewObjectID()
 	match.Orders = []model.Order{}
-	match.Travel.ID = primitive.NewObjectID()
-	match.Travel.Orders = []model.Order{}
 	client, err := db.GetMongoClient()
 	if err != nil {
 		return err
