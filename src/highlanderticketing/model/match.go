@@ -17,6 +17,5 @@ type Match struct {
 	AwayMatch             bool               `bson:"away_match"`
 	Location              string             `bson:"location"`
 	Date                  time.Time          `bson:"date"`
-	OrderAmount           int32              `bson:"orderamount"`
 	Orders                []Order            `bson:"orders"`
 }

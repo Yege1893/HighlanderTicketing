@@ -57,7 +57,7 @@ func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Fehler beim Authentifizieren", http.StatusInternalServerError)
 		return
 	}
-	// den teil in eine routine packen
+
 	user, err := service.GetUserInfoByToken(token.AccessToken)
 	if err != nil {
 		sendJson(w, err)
@@ -85,10 +85,10 @@ func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, tokenString)
 }
 
-func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) error {
+func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) (error, string) {
 	tokenString, err := getBearerToken(r)
 	if err != nil {
-		return err
+		return err, ""
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -98,7 +98,7 @@ func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) er
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, "Ungültiges Authorization-Token")
-		return err
+		return err, ""
 	}
 	var username string
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
@@ -110,10 +110,10 @@ func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) er
 	if needAdmin {
 		err := checkAdmin(username)
 		if err != nil {
-			return err
+			return err, ""
 		}
 	}
-	return nil
+	return nil, username
 }
 
 func checkAdmin(userEmail string) error {

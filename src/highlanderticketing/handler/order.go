@@ -11,7 +11,8 @@ import (
 )
 
 func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAccessToken(w, r, false); err != nil {
+	err, userOfOrder := CheckAccessToken(w, r, false)
+	if err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -26,19 +27,8 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	reqToken, err := getBearerToken(r)
-	if err != nil {
-		log.Errorf("Failure loading bearer token  %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	fmt.Println(reqToken, "reqToken")
-	userOfOrder, err := service.GetUserInfoByToken(reqToken)
-	if err != nil {
-		log.Errorf("Failure loading user Info %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 	fmt.Println(userOfOrder, "userOfOrder")
-	internalUser, err := service.GetUserByEmail(userOfOrder.Email)
+	internalUser, err := service.GetUserByEmail(userOfOrder)
 	if err != nil {
 		log.Errorf("Failure loading internal user Info %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -54,7 +44,8 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 
 }
 func CancelOrder(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAccessToken(w, r, false); err != nil {
+	err, userOfOrder := CheckAccessToken(w, r, false)
+	if err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -76,17 +67,7 @@ func CancelOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	reqToken, err := getBearerToken(r)
-	if err != nil {
-		log.Errorf("Failure loading bearer token  %v", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	userOfOrder, err := service.GetUserInfoByToken(reqToken)
-	if err != nil {
-		log.Errorf("Failure loading user Info %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-	internalUser, err := service.GetUserByEmail(userOfOrder.Email)
+	internalUser, err := service.GetUserByEmail(userOfOrder)
 	if err != nil {
 		log.Errorf("Failure loading internal user Info %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

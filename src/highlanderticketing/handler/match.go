@@ -12,7 +12,7 @@ import (
 
 func CreateMatch(w http.ResponseWriter, r *http.Request) {
 	var match *model.Match
-	if err := CheckAccessToken(w, r, true); err != nil {
+	if err, _ := CheckAccessToken(w, r, true); err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -32,7 +32,7 @@ func CreateMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateMatch(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAccessToken(w, r, true); err != nil {
+	if err, _ := CheckAccessToken(w, r, true); err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -58,7 +58,7 @@ func UpdateMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetAllMatches(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAccessToken(w, r, false); err != nil {
+	if err, _ := CheckAccessToken(w, r, false); err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -73,7 +73,7 @@ func GetAllMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetMatchByID(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAccessToken(w, r, false); err != nil {
+	if err, _ := CheckAccessToken(w, r, false); err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -92,7 +92,7 @@ func GetMatchByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteMatch(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAccessToken(w, r, true); err != nil {
+	if err, _ := CheckAccessToken(w, r, true); err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -118,7 +118,7 @@ func DeleteMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateTickets(w http.ResponseWriter, r *http.Request) {
-	if err := CheckAccessToken(w, r, true); err != nil {
+	if err, _ := CheckAccessToken(w, r, true); err != nil {
 		log.Errorf("Eror checking AccessToken: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

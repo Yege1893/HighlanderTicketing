@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
@@ -38,7 +39,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	}
 
 	collection := client.Database(db.DB).Collection(db.MATCHES)
-
+	// find match
 	err = collection.FindOne(context.TODO(), filter).Decode(&matchToFind)
 	if err != nil {
 		return err
@@ -48,7 +49,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	} else {
 		matchToFind.AvailableTicketAmount = matchToFind.AvailableTicketAmount - order.Amount
 	}
-
+	// push order
 	updateResult, err := collection.UpdateOne(context.TODO(), filter, updater)
 	if err != nil {
 		return err
@@ -56,7 +57,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	if updateResult.ModifiedCount == 0 {
 		return fmt.Errorf("no document was updated, please send order again")
 	}
-
+	// update match with new available ticketamount
 	_, errUpdate := UpdateMatch(matchToFind.ID, matchToFind)
 	if errUpdate != nil {
 		errUpdate = fmt.Errorf("can not update match amount, please send order again")
@@ -65,11 +66,16 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 		if err != nil {
 			return err
 		}
+		// send email cancel notification
 		defer natsServer.Nc.Close()
-		if err := natsServer.ConfirmCancel(&emailContent); err != nil {
-			// hier warten und nochmal versuchen zu senden
-			order.Cancelnotified = false
-			err := fmt.Errorf("error sending confirm email: %v", err)
+		order.Cancelnotified = true
+		if err, _ := natsServer.ConfirmCancel(&emailContent); err != nil {
+			time.Sleep(1 * time.Second)
+			err, _ := natsServer.ConfirmCancel(&emailContent)
+			if err != nil {
+				order.Ordernotified = false
+				err = fmt.Errorf("error sending cancel email: %v", err)
+			}
 			return err
 		}
 	}
@@ -80,16 +86,19 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	}
 
 	defer natsServer.Nc.Close()
-
-	if err := natsServer.ConfirmOrder(&emailContent); err != nil {
-		// hier warten und nochmal versuchen zu senden
-		order.Ordernotified = false
-		err = fmt.Errorf("error sending confirm email: %v", err)
+	// send confirm email
+	if err, _ := natsServer.ConfirmOrder(&emailContent); err != nil {
+		time.Sleep(1 * time.Second)
+		err, _ := natsServer.ConfirmOrder(&emailContent)
+		if err != nil {
+			order.Ordernotified = false
+			err = fmt.Errorf("error sending confirm email: %v", err)
+		}
 		return err
 	} else {
 		order.Ordernotified = true
 	}
-
+	// update order notification to true
 	updateNotification, err := collection.UpdateOne(context.TODO(), filter, updaterNotification, options)
 	if err != nil {
 		err = fmt.Errorf("no document was updated, please send order again")
@@ -97,7 +106,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	}
 
 	if updateNotification.ModifiedCount == 0 {
-		err = fmt.Errorf("no document was updated, please send order again")
+		err = fmt.Errorf("notification was not updated")
 		return err
 	}
 
@@ -105,11 +114,11 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 }
 
 func CancelOrder(matchID primitive.ObjectID, order *model.Order) error {
-	fmt.Println("order", order)
 	if order.Canceled == true {
 		return fmt.Errorf("order already canceled")
 	}
 	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
+	// find match with id
 	matchToFind, err := GetMatchByID(matchID)
 	if err != nil {
 		return err
@@ -135,7 +144,7 @@ func CancelOrder(matchID primitive.ObjectID, order *model.Order) error {
 			bson.D{{Key: "element._id", Value: order.ID}},
 		},
 	})
-
+	// update order to canceled
 	updateMatchCancel, err := collection.UpdateOne(context.TODO(), filter, updaterMatchCancel, options)
 	if err != nil {
 		return err
@@ -144,7 +153,7 @@ func CancelOrder(matchID primitive.ObjectID, order *model.Order) error {
 		return fmt.Errorf("not updated")
 
 	}
-
+	// update match with new available tickets
 	_, errUpdateAmount := UpdateMatch(matchToFind.ID, matchToFind)
 	if errUpdateAmount != nil {
 		order.Canceled = false
@@ -161,14 +170,19 @@ func CancelOrder(matchID primitive.ObjectID, order *model.Order) error {
 
 	natsServer, err := ConnectToNats()
 	defer natsServer.Nc.Close()
-
+	// send notification mail
 	emailContent := model.EmialContent{Name: order.User.Name, AwayMatch: matchToFind.AwayMatch, Location: matchToFind.Location, Date: matchToFind.Date.String(), Emailadress: order.User.Email, OrderID: order.ID.String()}
-	if err := natsServer.ConfirmCancel(&emailContent); err != nil {
-		return fmt.Errorf("error sending confirm email %v", err)
+	if err, _ := natsServer.ConfirmCancel(&emailContent); err != nil {
+		time.Sleep(1 * time.Second)
+		err, _ := natsServer.ConfirmOrder(&emailContent)
+		if err != nil {
+			order.Ordernotified = false
+			err = fmt.Errorf("error sending confirm email: %v", err)
+		}
 	} else {
 		order.Cancelnotified = true
 	}
-
+	// update cancel notification
 	updateMatchCancelNotifi, err := collection.UpdateOne(context.TODO(), filter, updaterMatchCancel, options)
 	if err != nil {
 		return err

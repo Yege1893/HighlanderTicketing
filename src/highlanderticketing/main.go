@@ -32,7 +32,7 @@ func main() {
 			if err != nil {
 				log.Println("Fehler beim Abrufen der Matches:", err)
 			}
-			time.Sleep(1 * time.Minute)
+			time.Sleep(3 * time.Minute)
 		}
 	}()
 
