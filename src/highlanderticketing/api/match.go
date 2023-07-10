@@ -11,8 +11,11 @@ import (
 )
 
 func GetMatchesOfApi(apiUrl string) ([]*model.Match, error) {
-	data := getData(apiUrl)
-	matches, err := formatJsonCreateMatch(data)
+	data, err := getData(apiUrl)
+	if err != nil {
+		return []*model.Match{}, err
+	}
+	matches, err := formatJsonToMatch(data)
 	if err != nil {
 		return []*model.Match{}, err
 	}
@@ -20,11 +23,28 @@ func GetMatchesOfApi(apiUrl string) ([]*model.Match, error) {
 	return matches, nil
 }
 
-func getData(apiUrl string) []byte {
-	request, error := http.NewRequest("GET", apiUrl, nil)
+func GetlatestMatchesOfApi(url string, updateChan chan<- int64) error {
+	data, err := getData(url)
+	if err != nil {
+		return err
+	}
+	matches, err := formatJsonToMatch(data)
+	if err != nil {
+		return err
+	}
+	for _, match := range matches {
+		updateChan <- match.ExternalID
+	}
 
-	if error != nil {
-		fmt.Println(error)
+	time.Sleep(5 * time.Minute)
+	return nil
+}
+
+func getData(apiUrl string) ([]byte, error) {
+	request, err := http.NewRequest("GET", apiUrl, nil)
+
+	if err != nil {
+		return []byte{}, err
 	}
 	client := &http.Client{}
 	response, error := client.Do(request)
@@ -33,17 +53,17 @@ func getData(apiUrl string) []byte {
 		fmt.Println(error)
 	}
 
-	responseBody, error := io.ReadAll(response.Body)
+	responseBody, err := io.ReadAll(response.Body)
 
-	if error != nil {
-		fmt.Println(error)
+	if err != nil {
+		return []byte{}, err
 	}
 	defer response.Body.Close()
 
-	return responseBody
+	return responseBody, nil
 }
 
-func formatJsonCreateMatch(jsonArray []byte) ([]*model.Match, error) {
+func formatJsonToMatch(jsonArray []byte) ([]*model.Match, error) {
 	var matches []*model.Match
 	var results []map[string]interface{}
 

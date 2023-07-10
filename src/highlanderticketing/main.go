@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -15,12 +16,22 @@ import (
 )
 
 func main() {
+	updateChan := make(chan int64)
 	/*service.DeleteAllUsers()
 	  var userArray []model.User
 	  userArray, _ = service.GetAllUsers()
 	  fmt.Println(userArray)
 	*/
-	service.DeleteAllMatches()
+	go api.GetlatestMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/2/8/0", updateChan)
+
+	go func() {
+		for {
+			message := <-updateChan
+			fmt.Println("Empfangene Nachricht:", message)
+		}
+	}()
+
+	/*service.DeleteAllMatches()
 	matches, errMatches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
 	if errMatches != nil {
 		return
@@ -28,6 +39,7 @@ func main() {
 	for _, match := range matches {
 		service.CreateMatch(match)
 	}
+	*/
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading .env file")
