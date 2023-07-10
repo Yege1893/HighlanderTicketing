@@ -16,7 +16,7 @@ func AddMatchOrder(matchID primitive.ObjectID, order *model.Order) error {
 	filter := bson.D{primitive.E{Key: "_id", Value: matchID}}
 	order.ID = primitive.NewObjectID()
 	matchToFind := &model.Match{}
-	emailContent := model.EmialContent{Name: order.User.Name, AwayMatch: matchToFind.AwayMatch, Location: matchToFind.Location, Date: matchToFind.Date, Emailadress: order.User.Email, OrderID: matchToFind.ID.String()}
+	emailContent := model.EmialContent{Name: order.User.Name, AwayMatch: matchToFind.AwayMatch, Location: matchToFind.Location, Date: matchToFind.Date.String(), Emailadress: order.User.Email, OrderID: matchToFind.ID.String()}
 
 	updater := bson.D{primitive.E{Key: "$push", Value: bson.D{
 		primitive.E{Key: "orders", Value: order},
@@ -162,7 +162,7 @@ func CancelOrder(matchID primitive.ObjectID, order *model.Order) error {
 	natsServer, err := ConnectToNats()
 	defer natsServer.Nc.Close()
 
-	emailContent := model.EmialContent{Name: order.User.Name, AwayMatch: matchToFind.AwayMatch, Location: matchToFind.Location, Date: matchToFind.Date, Emailadress: order.User.Email, OrderID: order.ID.String()}
+	emailContent := model.EmialContent{Name: order.User.Name, AwayMatch: matchToFind.AwayMatch, Location: matchToFind.Location, Date: matchToFind.Date.String(), Emailadress: order.User.Email, OrderID: order.ID.String()}
 	if err := natsServer.ConfirmCancel(&emailContent); err != nil {
 		return fmt.Errorf("error sending confirm email %v", err)
 	} else {

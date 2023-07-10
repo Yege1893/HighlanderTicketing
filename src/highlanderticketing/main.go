@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/api"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
@@ -17,9 +19,10 @@ func main() {
 	/*service.DeleteAllUsers()
 	var userArray []model.User
 	userArray, _ = service.GetAllUsers()
-	fmt.Println(userArray)
+	fmt.Println(userArray)*/
 	service.DeleteAllMatches()
-	api.GetMatchesOfApiToDb("https://api.openligadb.de/getmatchesbyteamid/16/5/0")*/
+	matches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
+	fmt.Println(&matches)
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading .env file")

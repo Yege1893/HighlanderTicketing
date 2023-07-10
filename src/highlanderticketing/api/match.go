@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
-	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
 )
 
-func GetMatchesOfApiToDb(apiUrl string) {
+func GetMatchesOfApi(apiUrl string) []*model.Match {
 	data := getData(apiUrl)
-	formatJsonCreateMatch(data)
+	fmt.Println(data)
+	matches := formatJsonToMatches(data)
+	return matches
 }
 
 func getData(apiUrl string) []byte {
@@ -38,26 +40,46 @@ func getData(apiUrl string) []byte {
 	return responseBody
 }
 
-func formatJsonCreateMatch(jsonArray []byte) {
-	var match model.Match
+func formatJsonToMatches(jsonArray []byte) []*model.Match {
+	var match *model.Match
+	var matches []*model.Match
 	var results []map[string]interface{}
 
 	json.Unmarshal([]byte(jsonArray), &results)
 
 	for _, result := range results {
-		match.Date = result["matchDateTime"].(string)
+		fmt.Println(result, "result")
+		match.ExternalID = int64(result["matchID"].(float64))
+		fmt.Println(match.ExternalID)
+		match.LeagueName = result["leagueName"].(string)
+		match.Date = result["matchDateTime"].(time.Time)
+		fmt.Println(*match)
+
+		if team1, ok := result["team1"].(map[string]interface{}); ok {
+			if name, ok := team1["shortName"].(string); ok {
+				match.Location = name
+			}
+		}
+
 		if team1, ok := result["team1"].(map[string]interface{}); ok {
 			if name, ok := team1["teamName"].(string); ok {
-				match.Location = name
+				if name != "VfB Stuttgart" {
+					match.Opponenent = name
+				}
 			}
 		}
 		if team2, ok := result["team2"].(map[string]interface{}); ok {
 			if name, ok := team2["teamName"].(string); ok {
 				if name == "VfB Stuttgart" {
 					match.AwayMatch = true
+				} else {
+					match.AwayMatch = false
+					match.Opponenent = name
 				}
 			}
 		}
-		service.CreateMatch(&match)
+		fmt.Println(&matches)
+		matches = append(matches, match)
 	}
+	return matches
 }
