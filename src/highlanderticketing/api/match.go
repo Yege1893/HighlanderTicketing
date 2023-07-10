@@ -10,11 +10,14 @@ import (
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 )
 
-func GetMatchesOfApi(apiUrl string) []*model.Match {
+func GetMatchesOfApi(apiUrl string) (error, []*model.Match) {
 	data := getData(apiUrl)
-	fmt.Println(data)
-	matches := formatJsonToMatches(data)
-	return matches
+	err, matches := formatJsonCreateMatch(data)
+	if err != nil {
+		return err, make([]*model.Match, 0)
+	}
+	fmt.Println(matches)
+	return nil, matches
 }
 
 func getData(apiUrl string) []byte {
@@ -40,20 +43,21 @@ func getData(apiUrl string) []byte {
 	return responseBody
 }
 
-func formatJsonToMatches(jsonArray []byte) []*model.Match {
-	var match *model.Match
+func formatJsonCreateMatch(jsonArray []byte) (error, []*model.Match) {
+	var match model.Match
 	var matches []*model.Match
 	var results []map[string]interface{}
 
 	json.Unmarshal([]byte(jsonArray), &results)
 
 	for _, result := range results {
-		fmt.Println(result, "result")
 		match.ExternalID = int64(result["matchID"].(float64))
-		fmt.Println(match.ExternalID)
 		match.LeagueName = result["leagueName"].(string)
-		match.Date = result["matchDateTime"].(time.Time)
-		fmt.Println(*match)
+		matchDate, err := time.Parse("2006-01-02T15:04:05", result["matchDateTime"].(string))
+		if err != nil {
+			return err, matches
+		}
+		match.Date = matchDate
 
 		if team1, ok := result["team1"].(map[string]interface{}); ok {
 			if name, ok := team1["shortName"].(string); ok {
@@ -78,8 +82,7 @@ func formatJsonToMatches(jsonArray []byte) []*model.Match {
 				}
 			}
 		}
-		fmt.Println(&matches)
-		matches = append(matches, match)
+		matches = append(matches, &match)
 	}
-	return matches
+	return nil, matches
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -17,12 +16,18 @@ import (
 
 func main() {
 	/*service.DeleteAllUsers()
-	var userArray []model.User
-	userArray, _ = service.GetAllUsers()
-	fmt.Println(userArray)*/
+	  var userArray []model.User
+	  userArray, _ = service.GetAllUsers()
+	  fmt.Println(userArray)
+	*/
 	service.DeleteAllMatches()
-	matches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
-	fmt.Println(&matches)
+	errMatches, matches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
+	if errMatches != nil {
+		return
+	}
+	for _, match := range matches {
+		service.CreateMatch(match)
+	}
 
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatalf("Error loading .env file")
@@ -52,6 +57,7 @@ func main() {
 	router.HandleFunc("/match/{id}", handler.GetMatchByID).Methods("GET")
 	router.HandleFunc("/match/{id}", handler.UpdateMatch).Methods("PUT")
 	router.HandleFunc("/match/{id}", handler.DeleteMatch).Methods("DELETE")
+	router.HandleFunc("/match/{id}/updatetickets", handler.UpdateTickets).Methods("PUT")
 	router.HandleFunc("/match/{id}/matchorder", handler.AddMatchOrder).Methods("POST")
 	router.HandleFunc("/match/{id}/cancelorder/{orderid}", handler.CancelOrder).Methods("PUT")
 	if err := http.ListenAndServe(":8000", router); err != nil {

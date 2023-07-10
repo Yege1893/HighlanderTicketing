@@ -117,6 +117,32 @@ func DeleteMatch(w http.ResponseWriter, r *http.Request) {
 	sendJson(w, result{Success: "OK"})
 }
 
+func UpdateTickets(w http.ResponseWriter, r *http.Request) {
+	if err := CheckAccessToken(w, r, true); err != nil {
+		log.Errorf("Eror checking AccessToken: %v", err)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	id, err := getID(r)
+	if err != nil {
+		log.Errorf("Please parse in ID at the url %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	MatchToUpdate, err := getMatch(r)
+	if err != nil {
+		log.Errorf("Match not found %v", err)
+		return
+	}
+	MatchUpdated, err := service.UpdateTickets(id, MatchToUpdate)
+	if err != nil {
+		log.Errorf("Match could not be updated %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	sendJson(w, MatchUpdated)
+}
+
 // nur intern
 func DeleteAllMatches(w http.ResponseWriter, r *http.Request) {
 	err := service.DeleteAllMatches()
