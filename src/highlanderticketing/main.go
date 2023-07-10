@@ -21,7 +21,7 @@ func main() {
 	  fmt.Println(userArray)
 	*/
 	service.DeleteAllMatches()
-	errMatches, matches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
+	matches, errMatches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
 	if errMatches != nil {
 		return
 	}

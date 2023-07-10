@@ -10,14 +10,14 @@ import (
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 )
 
-func GetMatchesOfApi(apiUrl string) (error, []*model.Match) {
+func GetMatchesOfApi(apiUrl string) ([]*model.Match, error) {
 	data := getData(apiUrl)
-	err, matches := formatJsonCreateMatch(data)
+	matches, err := formatJsonCreateMatch(data)
 	if err != nil {
-		return err, make([]*model.Match, 0)
+		return []*model.Match{}, err
 	}
 	fmt.Println(matches)
-	return nil, matches
+	return matches, nil
 }
 
 func getData(apiUrl string) []byte {
@@ -43,19 +43,22 @@ func getData(apiUrl string) []byte {
 	return responseBody
 }
 
-func formatJsonCreateMatch(jsonArray []byte) (error, []*model.Match) {
-	var match model.Match
+func formatJsonCreateMatch(jsonArray []byte) ([]*model.Match, error) {
 	var matches []*model.Match
 	var results []map[string]interface{}
 
-	json.Unmarshal([]byte(jsonArray), &results)
+	if err := json.Unmarshal(jsonArray, &results); err != nil {
+		return nil, err
+	}
 
 	for _, result := range results {
+		var match model.Match
 		match.ExternalID = int64(result["matchID"].(float64))
 		match.LeagueName = result["leagueName"].(string)
+
 		matchDate, err := time.Parse("2006-01-02T15:04:05", result["matchDateTime"].(string))
 		if err != nil {
-			return err, matches
+			return nil, err
 		}
 		match.Date = matchDate
 
@@ -72,6 +75,7 @@ func formatJsonCreateMatch(jsonArray []byte) (error, []*model.Match) {
 				}
 			}
 		}
+
 		if team2, ok := result["team2"].(map[string]interface{}); ok {
 			if name, ok := team2["teamName"].(string); ok {
 				if name == "VfB Stuttgart" {
@@ -84,5 +88,5 @@ func formatJsonCreateMatch(jsonArray []byte) (error, []*model.Match) {
 		}
 		matches = append(matches, &match)
 	}
-	return nil, matches
+	return matches, nil
 }
