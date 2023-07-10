@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -12,33 +13,45 @@ import (
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/api"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/handler"
+	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
 )
 
 func main() {
-	updateChan := make(chan int64)
+	updateChan := make(chan *model.Match)
+	service.DeleteAllMatches()
 	/*service.DeleteAllUsers()
 	  var userArray []model.User
 	  userArray, _ = service.GetAllUsers()
 	  fmt.Println(userArray)
 	*/
-	go api.GetlatestMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/2/8/0", updateChan)
 
 	go func() {
 		for {
-			message := <-updateChan
-			fmt.Println("Empfangene Nachricht:", message)
+			err := api.GetlatestMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0", updateChan)
+			if err != nil {
+				log.Println("Fehler beim Abrufen der Matches:", err)
+			}
+			time.Sleep(1 * time.Minute)
 		}
 	}()
 
-	/*service.DeleteAllMatches()
-	matches, errMatches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
-	if errMatches != nil {
-		return
-	}
-	for _, match := range matches {
-		service.CreateMatch(match)
-	}
+	go func() {
+		for {
+			match := <-updateChan
+			fmt.Println(match, "match")
+			service.InserExternalMatch(match)
+		}
+	}()
+
+	/*
+		matches, errMatches := api.GetMatchesOfApi("https://api.openligadb.de/getmatchesbyteamid/16/10/0")
+		if errMatches != nil {
+			return
+		}
+		for _, match := range matches {
+			service.CreateMatch(match)
+		}
 	*/
 
 	if err := godotenv.Load(".env"); err != nil {

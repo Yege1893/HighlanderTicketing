@@ -27,6 +27,33 @@ func CreateMatch(match *model.Match) error {
 	return nil
 }
 
+func InserExternalMatch(match *model.Match) error {
+	match.ID = primitive.NewObjectID()
+	match.Orders = []model.Order{}
+	existingMatch := &model.Match{}
+	filter := bson.M{"externalID": match.ExternalID}
+
+	client, err := db.GetMongoClient()
+	if err != nil {
+		return err
+	}
+
+	collection := client.Database(db.DB).Collection(db.MATCHES)
+	err = collection.FindOne(context.TODO(), filter).Decode(existingMatch)
+	if err == nil {
+		fmt.Println("existier bereits")
+		return fmt.Errorf("Match mit ExternalID %d exists already", match.ExternalID)
+	} else if err != mongo.ErrNoDocuments {
+		return err
+	}
+	fmt.Println(match, "match das rein kommt")
+	_, err = collection.InsertOne(context.TODO(), match)
+	if err != nil {
+		return nil
+	}
+	return nil
+}
+
 func UpdateMatch(matchID primitive.ObjectID, match *model.Match) (*model.Match, error) {
 	result := model.Match{}
 

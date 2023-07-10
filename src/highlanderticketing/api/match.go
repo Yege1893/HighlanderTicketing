@@ -23,7 +23,7 @@ func GetMatchesOfApi(apiUrl string) ([]*model.Match, error) {
 	return matches, nil
 }
 
-func GetlatestMatchesOfApi(url string, updateChan chan<- int64) error {
+func GetlatestMatchesOfApi(url string, updateChan chan<- *model.Match) error {
 	data, err := getData(url)
 	if err != nil {
 		return err
@@ -33,10 +33,9 @@ func GetlatestMatchesOfApi(url string, updateChan chan<- int64) error {
 		return err
 	}
 	for _, match := range matches {
-		updateChan <- match.ExternalID
+		updateChan <- match
 	}
 
-	time.Sleep(5 * time.Minute)
 	return nil
 }
 
