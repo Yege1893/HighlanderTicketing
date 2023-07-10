@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/config"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/service"
 
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/oauth2"
 )
+
+var secretKey = []byte("mysecretkey")
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	oauthConfig := config.GetOAuthConfigLogin()
@@ -44,6 +48,7 @@ func HandleCallbackRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
+
 	oauthConfig := config.GetOAuthConfigLogin()
 	code := r.URL.Query().Get("code")
 	token, err := oauthConfig.Exchange(context.Background(), code)
@@ -58,29 +63,52 @@ func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 		sendJson(w, err)
 		return
 	}
-	_, errUser := service.GetUserByEmail(user.Email)
+	userfound, errUser := service.GetUserByEmail(user.Email)
 	if errUser != nil {
 		sendJson(w, err)
 		sendJson(w, "user nicht registriert")
 		return
 	}
-	sendJson(w, token.AccessToken)
+
+	tokenJwt := jwt.New(jwt.SigningMethodHS256)
+	claims := tokenJwt.Claims.(jwt.MapClaims)
+	claims["username"] = userfound.Email
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	tokenString, err := tokenJwt.SignedString(secretKey)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, "Login erfolgreich")
+	sendJson(w, tokenString)
 }
 
 func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) error {
-	token, err := getBearerToken(r)
+	tokenString, err := getBearerToken(r)
 	if err != nil {
 		return err
 	}
-	valid, err := service.ValidateGoogleAccessToken(token)
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return secretKey, nil
+	})
+
 	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Ungültiges Authorization-Token")
 		return err
 	}
-	if valid != true {
-		return nil
+	var username string
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		username = claims["username"].(string)
+	} else {
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprint(w, "Ungültiges Authorization-Token")
 	}
 	if needAdmin {
-		err := checkAdmin(token)
+		err := checkAdmin(username)
 		if err != nil {
 			return err
 		}
@@ -88,12 +116,8 @@ func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) er
 	return nil
 }
 
-func checkAdmin(token string) error {
-	userExternal, err := service.GetUserInfoByToken(token)
-	if err != nil {
-		return err
-	}
-	user, err := service.GetUserByEmail(userExternal.Email)
+func checkAdmin(userEmail string) error {
+	user, err := service.GetUserByEmail(userEmail)
 	if err != nil {
 		return err
 	}

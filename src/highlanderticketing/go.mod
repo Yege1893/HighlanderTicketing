@@ -6,7 +6,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/nats-io/nats.go v1.27.1
 	golang.org/x/oauth2 v0.9.0
-	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc
 )
 
 require (
@@ -32,6 +31,7 @@ require (
 )
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gorilla/mux v1.8.0
 	github.com/sirupsen/logrus v1.9.3
 	go.mongodb.org/mongo-driver v1.11.7
