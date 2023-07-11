@@ -74,7 +74,9 @@ func CancelOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	if order.User != *internalUser {
+		http.Error(w, "can not cancel order with this user", http.StatusInternalServerError)
 		sendJson(w, "user is not allowed to cancel this order")
+		return
 	}
 
 	err = service.CancelOrder(id, order)
