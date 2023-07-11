@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -38,7 +37,7 @@ func main() {
 	go func() {
 		for {
 			match := <-updateChan
-			fmt.Println(match, "match")
+
 			service.InserExternalMatch(match)
 		}
 	}()
