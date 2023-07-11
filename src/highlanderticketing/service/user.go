@@ -50,18 +50,15 @@ func CreateUser(user *model.User) error {
 	result := collection.FindOneAndUpdate(context.TODO(), filter, update, options)
 
 	if result.Err() == mongo.ErrNoDocuments {
-		fmt.Println(3)
 		return nil // dokument wurd erstellt
 	} else if result.Err() != nil {
-		fmt.Println(2)
 		return result.Err() // fehler beim process an sich
 	} else {
-		fmt.Println(1)
 		return fmt.Errorf("Der Benutzer existiert bereits")
 	}
 }
 
-func UpdateUser(userID primitive.ObjectID, user *model.User) (*model.User, error) { //darf nur ein admin machen
+func UpdateUser(userID primitive.ObjectID, user *model.User) (*model.User, error) {
 	result := model.User{}
 	existingUser, err := GetUserByID(userID)
 	if existingUser == nil || err != nil {

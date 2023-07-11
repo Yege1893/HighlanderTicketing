@@ -20,11 +20,10 @@ import (
 func main() {
 	updateChan := make(chan *model.Match)
 	service.DeleteAllMatches()
-	/*service.DeleteAllUsers()
-	  var userArray []model.User
-	  userArray, _ = service.GetAllUsers()
-	  fmt.Println(userArray)
-	*/
+	service.DeleteAllUsers()
+	/* var userArray []model.User
+	userArray, _ = service.GetAllUsers()
+	fmt.Println(userArray)*/
 
 	go func() {
 		for {

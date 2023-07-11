@@ -2,40 +2,44 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 )
 
 func GetMatchesOfApi(apiUrl string) ([]*model.Match, error) {
 	data, err := getData(apiUrl)
 	if err != nil {
+		log.Errorf("Failure loading data of match %v", err)
 		return []*model.Match{}, err
 	}
 	matches, err := formatJsonToMatch(data)
 	if err != nil {
+		log.Errorf("Failure formating match %v", err)
 		return []*model.Match{}, err
 	}
-	fmt.Println(matches)
+	log.Info("Got matches of API")
 	return matches, nil
 }
 
 func GetlatestMatchesOfApi(url string, updateChan chan<- *model.Match) error {
 	data, err := getData(url)
 	if err != nil {
+		log.Errorf("Failure loading data of match %v", err)
 		return err
 	}
 	matches, err := formatJsonToMatch(data)
 	if err != nil {
+		log.Errorf("Failure formating match %v", err)
 		return err
 	}
 	for _, match := range matches {
 		updateChan <- match
 	}
-
+	log.Info("added matches to chain")
 	return nil
 }
 
@@ -43,22 +47,25 @@ func getData(apiUrl string) ([]byte, error) {
 	request, err := http.NewRequest("GET", apiUrl, nil)
 
 	if err != nil {
+		log.Errorf("Failure creating request %v", err)
 		return []byte{}, err
 	}
 	client := &http.Client{}
-	response, error := client.Do(request)
+	response, err := client.Do(request)
 
-	if error != nil {
-		fmt.Println(error)
+	if err != nil {
+		log.Errorf("Failure making request %v", err)
+		return []byte{}, err
 	}
 
 	responseBody, err := io.ReadAll(response.Body)
 
 	if err != nil {
+		log.Errorf("Failure searalizing request %v", err)
 		return []byte{}, err
 	}
 	defer response.Body.Close()
-
+	log.Info("Got data of API")
 	return responseBody, nil
 }
 
@@ -67,6 +74,7 @@ func formatJsonToMatch(jsonArray []byte) ([]*model.Match, error) {
 	var results []map[string]interface{}
 
 	if err := json.Unmarshal(jsonArray, &results); err != nil {
+		log.Errorf("Failure unmarshaling data %v", err)
 		return nil, err
 	}
 
@@ -77,6 +85,7 @@ func formatJsonToMatch(jsonArray []byte) ([]*model.Match, error) {
 
 		matchDate, err := time.Parse("2006-01-02T15:04:05", result["matchDateTime"].(string))
 		if err != nil {
+			log.Errorf("Failure parsing date %v", err)
 			return nil, err
 		}
 		match.Date = matchDate
@@ -107,5 +116,6 @@ func formatJsonToMatch(jsonArray []byte) ([]*model.Match, error) {
 		}
 		matches = append(matches, &match)
 	}
+	log.Info("formated matches in json")
 	return matches, nil
 }

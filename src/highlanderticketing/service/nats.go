@@ -49,6 +49,9 @@ func (s NatsServer) ConfirmOrder(e *model.EmialContent) (error, bool) {
 	if err := json.Unmarshal(response.Data, &res); err != nil {
 		return fmt.Errorf(err.Error()), false
 	}
+	if res.Send != true {
+		return fmt.Errorf("emain not succesfuly send"), false
+	}
 	fmt.Println("hier die nats response", *res)
 	return nil, true
 }
@@ -69,7 +72,9 @@ func (s NatsServer) ConfirmCancel(e *model.EmialContent) (error, bool) {
 	if err := json.Unmarshal(response.Data, &res); err != nil {
 		return fmt.Errorf(err.Error()), false
 	}
-
+	if res.Send != true {
+		return fmt.Errorf("emain not succesfuly send"), false
+	}
 	fmt.Println("hier die nats response", *res)
 	return nil, true
 }

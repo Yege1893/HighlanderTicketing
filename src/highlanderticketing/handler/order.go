@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -19,15 +18,16 @@ func AddMatchOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := getID(r)
 	if err != nil {
+		log.Errorf("Eror gettin id in request: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	order, err := getOrder(r)
 	if err != nil {
+		log.Errorf("Eror gettin order in request: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(userOfOrder, "userOfOrder")
 	internalUser, err := service.GetUserByEmail(userOfOrder)
 	if err != nil {
 		log.Errorf("Failure loading internal user Info %v", err)
@@ -52,18 +52,19 @@ func CancelOrder(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := getID(r)
 	if err != nil {
+		log.Errorf("Eror gettin id in request: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	orderId, err := getOrderID(r)
 	if err != nil {
+		log.Errorf("Eror gettin order in request: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(orderId, "orderid")
 	order, err := service.GetOrderById(orderId)
-	fmt.Println("order ", order)
 	if err != nil {
+		log.Errorf("Eror order internal: %v", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

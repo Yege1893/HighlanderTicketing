@@ -17,29 +17,33 @@ import (
 
 var secretKey = []byte("mysecretkey")
 
+// aufgerufen, wenn der benutzer sich ein loggt, ruft oauth conf auf, leitet zu authorisisuerngsseite um
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	oauthConfig := config.GetOAuthConfigLogin()
 	url := oauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
 
+// aufgerufen, wenn der benutzer sich registriert, ruft oauth conf auf, leitet zu authorisisuerngsseite um
 func HandleRegister(w http.ResponseWriter, r *http.Request) {
 	oauthConfig := config.GetOAuthConfigRegister()
 	url := oauthConfig.AuthCodeURL("state", oauth2.AccessTypeOffline)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 }
+
+// aufgerufen, wenn autorisierungscode von google kommt, tauscht code gegen access token ein, und registriert den benutzer
 func HandleCallbackRegister(w http.ResponseWriter, r *http.Request) {
 	oauthConfig := config.GetOAuthConfigRegister()
 	code := r.URL.Query().Get("code")
 	token, err := oauthConfig.Exchange(context.Background(), code)
 	if err != nil {
-		log.Println("Fehler beim Austausch des Autorisierungscodes:", err)
+		log.Errorf("Failure exchanging authorisingcode: %v", err)
 		http.Error(w, "Fehler beim Authentifizieren", http.StatusInternalServerError)
 		return
 	}
 	err = service.Register(token.AccessToken)
 	if err != nil {
-		fmt.Println(err)
+		log.Errorf("Failure registrating: %v", err)
 		io.WriteString(w, `user besteht bereits`)
 	} else {
 		sendJson(w, "user erfolgreich angelegt")
@@ -47,13 +51,14 @@ func HandleCallbackRegister(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// aufgerufen, wenn autorisierungscode von google kommt, tauscht code gegen Zugriffstoken ein, generiert jwt token
 func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 
 	oauthConfig := config.GetOAuthConfigLogin()
 	code := r.URL.Query().Get("code")
 	token, err := oauthConfig.Exchange(context.Background(), code)
 	if err != nil {
-		log.Println("Fehler beim Austausch des Autorisierungscodes:", err)
+		log.Errorf("Failure exchanging authorisingcode: %v", err)
 		http.Error(w, "Fehler beim Authentifizieren", http.StatusInternalServerError)
 		return
 	}
@@ -73,7 +78,7 @@ func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 	tokenJwt := jwt.New(jwt.SigningMethodHS256)
 	claims := tokenJwt.Claims.(jwt.MapClaims)
 	claims["username"] = userfound.Email
-	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 5).Unix()
 
 	tokenString, err := tokenJwt.SignedString(secretKey)
 	if err != nil {
@@ -81,13 +86,15 @@ func HandleCallbackLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "Login erfolgreich")
+	log.Info("Login erfolgreich")
 	sendJson(w, tokenString)
 }
 
+// überprüft den jwt token
 func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) (error, string) {
 	tokenString, err := getBearerToken(r)
 	if err != nil {
+		log.Errorf("no bearer token handed over: %v", err)
 		return err, ""
 	}
 
@@ -113,12 +120,14 @@ func CheckAccessToken(w http.ResponseWriter, r *http.Request, needAdmin bool) (e
 			return err, ""
 		}
 	}
+	log.Info("token checked succesfully")
 	return nil, username
 }
 
 func checkAdmin(userEmail string) error {
 	user, err := service.GetUserByEmail(userEmail)
 	if err != nil {
+		log.Errorf("failure getting user by email: %v", err)
 		return err
 	}
 	if user.IsAdmin {

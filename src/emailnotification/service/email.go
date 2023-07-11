@@ -14,7 +14,7 @@ import (
 
 func CreateEmail(emailContenct model.EmialContent, subject string) (string, string, string) {
 	if subject == "confirm" {
-		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird deine Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Order"
+		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird deine Bestellung fuer das VFB Spiel", emailContenct.Name), "Confirm Order"
 	}
 	if subject == "cancel" {
 		return emailContenct.Emailadress, fmt.Sprintf("Hallo Herr/Frau, %s\r\nHiermit bestaetigen wird die Stornierung deiner Bestellung fuer das VFB Spiel in %s, am %s", emailContenct.Name, emailContenct.Location, emailContenct.Date), "Confirm Cancelation"

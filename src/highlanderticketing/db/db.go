@@ -2,8 +2,9 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"sync"
+
+	log "github.com/sirupsen/logrus"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -21,6 +22,7 @@ const (
 	DBUSER           = "db_user"
 	MATCHES          = "col_matches"
 	USERS            = "col_users"
+	USERS_TEST       = "col_users_test"
 	POOL_SIZE        = 10000 // Anzahl der Verbindungen im Pool
 )
 
@@ -31,24 +33,28 @@ func GetMongoClient() (*mongo.Client, error) {
 		clientOptions.SetMaxPoolSize(POOL_SIZE)
 		client, err := mongo.Connect(context.TODO(), clientOptions)
 		if err != nil {
-			fmt.Println("hier liegt der fehler")
+
 			clientInstanceError = err
+			log.Errorf("Failure instancing client %v", err)
 		}
 		err = client.Ping(context.TODO(), nil)
 		if err != nil {
 			clientInstanceError = err
+			log.Errorf("Failure pinging client %v", err)
 		}
 		clientInstance = client
 	})
-
+	log.Info("client returned")
 	return clientInstance, clientInstanceError
 }
 func CloseMongoClient() error {
 	if clientInstance != nil {
 		err := clientInstance.Disconnect(context.Background())
 		if err != nil {
+			log.Errorf("Failure disconnecting client %v", err)
 			return err
 		}
 	}
+	log.Info("client disconnected")
 	return nil
 }

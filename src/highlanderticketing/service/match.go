@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/db"
 	"gitlab.reutlingen-university.de/ege/highlander-ticketing-go-ss2023/src/highlanderticketing/model"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,14 +17,17 @@ func CreateMatch(match *model.Match) error {
 	match.Orders = []model.Order{}
 	client, err := db.GetMongoClient()
 	if err != nil {
+		log.Errorf("Eror gettin db client: %v", err)
 		return err
 	}
 	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	_, err = collection.InsertOne(context.TODO(), match)
 	if err != nil {
+		log.Errorf("Erorr inserting match: %v", err)
 		return nil
 	}
+	log.Info("match inserted: %v", match)
 	return nil
 }
 
@@ -35,22 +39,23 @@ func InserExternalMatch(match *model.Match) error {
 
 	client, err := db.GetMongoClient()
 	if err != nil {
+		log.Errorf("Eror gettin db client: %v", err)
 		return err
 	}
 
 	collection := client.Database(db.DB).Collection(db.MATCHES)
 	err = collection.FindOne(context.TODO(), filter).Decode(existingMatch)
 	if err == nil {
-		fmt.Println("existier bereits")
+		log.Info("match already exists")
 		return fmt.Errorf("Match mit ExternalID %d exists already", match.ExternalID)
 	} else if err != mongo.ErrNoDocuments {
 		return err
 	}
-	fmt.Println(match, "match das rein kommt")
 	_, err = collection.InsertOne(context.TODO(), match)
 	if err != nil {
 		return nil
 	}
+	log.Info("match inserted: %v", match)
 	return nil
 }
 
@@ -73,12 +78,14 @@ func UpdateMatch(matchID primitive.ObjectID, match *model.Match) (*model.Match, 
 
 	client, err := db.GetMongoClient()
 	if err != nil {
+		log.Errorf("Eror gettin db client: %v", err)
 		return nil, err
 	}
 	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	updateResult, err := collection.UpdateOne(context.TODO(), filter, updater)
 	if err != nil {
+		log.Errorf("Erorr getting collection of db: %v", err)
 		return nil, err
 	}
 
@@ -88,9 +95,10 @@ func UpdateMatch(matchID primitive.ObjectID, match *model.Match) (*model.Match, 
 
 	err = collection.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
+		log.Errorf("Erorr finding match in db: %v", err)
 		return nil, err
 	}
-
+	log.Info("match updated: %v", match)
 	return &result, nil
 }
 
@@ -100,7 +108,7 @@ func UpdateTickets(matchID primitive.ObjectID, match *model.Match) (*model.Match
 
 	existingmatch, err := GetMatchByID(matchID)
 	if err != nil {
-		fmt.Println(existingmatch, "existingmatch")
+		log.Errorf("Erorr getting match by id: %v", err)
 		return &result, err
 	}
 
@@ -115,12 +123,14 @@ func UpdateTickets(matchID primitive.ObjectID, match *model.Match) (*model.Match
 
 	client, err := db.GetMongoClient()
 	if err != nil {
+		log.Errorf("Eror gettin db client: %v", err)
 		return nil, err
 	}
 	collection := client.Database(db.DB).Collection(db.MATCHES)
 
 	updateResult, err := collection.UpdateOne(context.TODO(), filter, updater)
 	if err != nil {
+		log.Errorf("Erorr getting collection of db: %v", err)
 		return nil, err
 	}
 
@@ -132,7 +142,7 @@ func UpdateTickets(matchID primitive.ObjectID, match *model.Match) (*model.Match
 	if err != nil {
 		return nil, err
 	}
-
+	log.Info("tickets updated: %v", match)
 	return &result, nil
 }
 
