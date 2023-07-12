@@ -1,0 +1,11 @@
+ - handler , order , travel 
+ - user werden aus google oauth2 erzeugt (Plan)
+ - services von user travel order
+ - context definieren
+ - schauen wann verbindung zu mongodb unterbrechen
+ - docker von api 
+ - reihenfolge von den docker files (shell von schmollinger verwenden)
+ - google oauth2 anbinden
+ - schauen wie thread save machen (evtl. mit abfrage von api)
+ - api anbinden
+
